@@ -1,0 +1,25 @@
+{
+  "slug": "QualiaTouch",
+  "name": "QualiaTouch",
+  "version": "2.0.0",
+  "license": "WTFPL",
+  "brand": "",
+  "author": "Qualia Touch",
+  "authorEmail": "qualiatouch@proton.me",
+  "pluginUrl": "",
+  "authorUrl": "",
+  "manualUrl": "",
+  "sourceUrl": "https://github.com/qualiatouch/qualiatouch-plugin",
+  "changelogUrl": "",
+  "modules": [
+    {
+      "slug": "DmxOut1",
+      "name": "DMX OUT 1",
+      "description": "Send DMX data to one channel",
+      "manualUrl": "",
+      "tags": [
+        "External"
+      ]
+    }
+  ]
+}
