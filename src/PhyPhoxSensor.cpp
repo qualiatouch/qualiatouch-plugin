@@ -52,9 +52,9 @@ struct PhyPhoxSensor : Module {
 
     Sensor sensor = SENSOR_MAG;
 
-	float outMagX = 0.f;
-	float outMagY = 0.f;
-	float outMagZ = 0.f;
+	float outX = 0.f;
+	float outY = 0.f;
+	float outZ = 0.f;
 
 	float timeSinceLastRequest = 0.f;
 	bool isFetching = false;
@@ -66,9 +66,9 @@ struct PhyPhoxSensor : Module {
 	
 	struct OrderedResult {
 		int requestId;
-		float magX;
-		float magY;
-		float magZ;
+		float resultX;
+		float resultY;
+		float resultZ;
 	};	
 	
 	std::mutex resultMutex;
@@ -88,6 +88,8 @@ struct PhyPhoxSensor : Module {
         configOutput(OUT_Z, "Z");
 
         curl_global_init(CURL_GLOBAL_DEFAULT);
+
+        queryParams = getQueryParams(sensor);
         
         url = http.append(ip).append(":").append(port).append("/get?").append(queryParams);
         if (debug) {
@@ -98,8 +100,36 @@ struct PhyPhoxSensor : Module {
 		this->nextRequestId = 0;
 	}
 
+    std::string getQueryParams(Sensor sensor);
+
     void process(const ProcessArgs& args) override;
 };
+
+std::string PhyPhoxSensor::getQueryParams(Sensor sensor) {
+    switch (sensor)
+    {
+        case PhyPhoxSensor::SENSOR_MAG:
+            return "magX&magY&magZ";
+        default:
+            return "";
+    }
+}
+
+static std::string getType(const PhyPhoxSensor::Sensor sensor) {
+    switch (sensor)
+    {
+        case PhyPhoxSensor::SENSOR_MAG:
+            return "mag";
+        default:
+            return "";
+    }
+}
+
+static float getValue(const json j, const PhyPhoxSensor::Sensor sensor, const char* coord) {
+    std::string p = getType(sensor).append(coord);
+
+    return j["buffer"][p]["buffer"][0];
+}
 
 // TODO will not work correctly with more than one module
 
@@ -143,29 +173,29 @@ void fetchHttpAsync(PhyPhoxSensor* module, int requestId) {
             if (module->debug) {
                 cout << "j = " << j << endl;
             }
-            float magX = j["buffer"]["magX"]["buffer"][0];
-            float magY = j["buffer"]["magY"]["buffer"][0];
-            float magZ = j["buffer"]["magZ"]["buffer"][0];
+            float sensorX = getValue(j, module->sensor, "X");
+            float sensorY = getValue(j, module->sensor, "Y");
+            float sensorZ = getValue(j, module->sensor, "Z");
 
             if (module->debug) {
-                cout << "magX = " << magX << endl;
-                cout << "magY = " << magY << endl;
-                cout << "magZ = " << magZ << endl;
+                cout << "sensorX = " << sensorX << endl;
+                cout << "sensorY = " << sensorY << endl;
+                cout << "sensorZ = " << sensorZ << endl;
             }
 
             // todo params + clearer
-            float scaledMagX = clamp((magX + 500.0f) * (10.0f / 1500.0f) - 5.0f, -5.0f, 5.0f);
-			float scaledMagY = clamp(((magY + 200.0f) * (10.0f / 400.0f)) - 5.0f, -5.0f, 5.0f);
-			float scaledMagZ = clamp(((magZ + 40.0f) * (10.0f / 2540.0f)) - 5.0f, -5.0f, 5.0f);
+            float scaledX = clamp((sensorX + 500.0f) * (10.0f / 1500.0f) - 5.0f, -5.0f, 5.0f);
+			float scaledY = clamp(((sensorY + 200.0f) * (10.0f / 400.0f)) - 5.0f, -5.0f, 5.0f);
+			float scaledZ = clamp(((sensorZ + 40.0f) * (10.0f / 2540.0f)) - 5.0f, -5.0f, 5.0f);
 
             if (module->debug) {
-                cout << "scaledMagX = " << scaledMagX << endl;
-                cout << "scaledMagY = " << scaledMagY << endl;
-                cout << "scaledMagZ = " << scaledMagZ << endl;
+                cout << "scaledX = " << scaledX << endl;
+                cout << "scaledY = " << scaledY << endl;
+                cout << "scaledZ = " << scaledZ << endl;
             }
 
             std::lock_guard<std::mutex> lock(module->resultMutex);
-			module->resultQueue.push({requestId, scaledMagX, scaledMagY, scaledMagZ});
+			module->resultQueue.push({requestId, scaledX, scaledY, scaledZ});
 		} catch (const std::exception& e) {
             if (module->debug) {
                 cout << "error " << "" << " : " << e.what() << endl;
@@ -200,17 +230,17 @@ void PhyPhoxSensor::process(const ProcessArgs& args) {
 				auto result = resultQueue.top();
 				resultQueue.pop();
 		
-				outMagX = result.magX;
-				outMagY = result.magY;
-				outMagZ = result.magZ;
+				outX = result.resultX;
+				outY = result.resultY;
+				outZ = result.resultZ;
 
 				nextExpectedId++;
 			}
 		}
 		
-		outputs[OUT_X].setVoltage(outMagX);
-		outputs[OUT_Y].setVoltage(outMagY);
-		outputs[OUT_Z].setVoltage(outMagZ);
+		outputs[OUT_X].setVoltage(outX);
+		outputs[OUT_Y].setVoltage(outY);
+		outputs[OUT_Z].setVoltage(outZ);
 }
 
 struct PhyPhoxWidget : ModuleWidget {
