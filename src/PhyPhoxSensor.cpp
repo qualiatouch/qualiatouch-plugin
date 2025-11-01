@@ -46,11 +46,12 @@ struct PhyPhoxSensor : Module {
     std::string url;
 
     enum Sensor {
-        SENSOR_MAG,
-        SENSOR_ACC
+        SENSOR_MAG = 0,
+        SENSOR_ACC = 1
     };
 
     Sensor sensor = SENSOR_MAG;
+    int modeParam = SENSOR_MAG;
 
 	float outX = 0.f;
 	float outY = 0.f;
@@ -59,7 +60,7 @@ struct PhyPhoxSensor : Module {
 	float timeSinceLastRequest = 0.f;
 	bool isFetching = false;
 
-    bool debug = false;
+    bool debug = true;
 
 	std::atomic<int> nextRequestId;
 	int nextExpectedId = 0;
@@ -106,8 +107,22 @@ struct PhyPhoxSensor : Module {
 };
 
 void PhyPhoxSensor::initUrl() {
+    sensor = (Sensor) modeParam;
+    if (debug) {
+        cout << "initUrl() sensor = " << sensor << endl;
+    }
+
     queryParams = getQueryParams(sensor);
-    url = http.append(ip).append(":").append(port).append("/get?").append(queryParams);
+
+    if (debug) {
+        cout << "queryParams = " << queryParams << endl;
+    }
+
+    url = http;
+    url = url.append(ip).append(":").append(port).append("/get?").append(queryParams);
+    if (debug) {
+        cout << "url = " << url << endl;
+    }
 }
 
 std::string PhyPhoxSensor::getQueryParams(Sensor sensor) {
@@ -115,6 +130,8 @@ std::string PhyPhoxSensor::getQueryParams(Sensor sensor) {
     {
         case PhyPhoxSensor::SENSOR_MAG:
             return "magX&magY&magZ";
+        case PhyPhoxSensor::SENSOR_ACC:
+            return "accX&accY&ccZ";
         default:
             return "";
     }
@@ -125,13 +142,23 @@ static std::string getType(const PhyPhoxSensor::Sensor sensor) {
     {
         case PhyPhoxSensor::SENSOR_MAG:
             return "mag";
+        case PhyPhoxSensor::SENSOR_ACC:
+            return "acc";
         default:
             return "";
     }
 }
 
 static float getValue(const json j, const PhyPhoxSensor::Sensor sensor, const char* coord) {
+    if (j["buffer"].empty()) {
+        cout << "empty" << endl;
+        return 0.f;
+    }
     std::string p = getType(sensor).append(coord);
+    if (false == j["buffer"].contains(p)) {
+        cout << "is not object" << endl;
+        return 0.f;
+    }
 
     return j["buffer"][p]["buffer"][0];
 }
@@ -233,7 +260,11 @@ void fetchHttpAsync(PhyPhoxSensor* module, int requestId) {
 
 void PhyPhoxSensor::process(const ProcessArgs& args) {
 		timeSinceLastRequest += args.sampleTime;
-		if (!isFetching && timeSinceLastRequest >= 0.01f) { // change time here
+		if (!isFetching && timeSinceLastRequest >= 0.01f) {
+            if (modeParam != sensor) {
+                initUrl();
+            }
+
 			int id = nextRequestId++;
             if (debug) {
 			    cout << "next request : " << id << std::endl;
@@ -281,10 +312,12 @@ struct SensorTypeWidget : Widget {
 };
 
 struct PhyPhoxWidget : ModuleWidget {
+    PhyPhoxSensor* module;
     FramebufferWidget* frameBufferWidget;
     SensorTypeWidget* sensorTypeWidget;
 
-	PhyPhoxWidget(PhyPhoxSensor* module) {
+	PhyPhoxWidget(PhyPhoxSensor* moduleParam) {
+        module = moduleParam;
 		setModule(module);
 		setPanel(createPanel(asset::plugin(pluginInstance, "res/phyphox-sensor.svg")));
 
@@ -304,6 +337,19 @@ struct PhyPhoxWidget : ModuleWidget {
         sensorTypeWidget->setSize(Vec(100, 100));
         frameBufferWidget->addChild(sensorTypeWidget);
 	}
+
+	void appendContextMenu(Menu* menu) override {
+		menu->addChild(new MenuSeparator);
+		menu->addChild(createMenuLabel("Sensor settings"));
+
+		menu->addChild(createIndexPtrSubmenuItem("Sensor type",
+			{
+                "Magnetic",
+                "Acceleration"
+            },
+			&module->modeParam
+		));
+    }
 };
 
 Model* modelPhyPhoxSensor = createModel<PhyPhoxSensor, PhyPhoxWidget>("PhyPhoxSensor");
