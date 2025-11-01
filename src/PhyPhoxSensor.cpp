@@ -57,6 +57,27 @@ struct PhyPhoxSensor : Module {
 	float outY = 0.f;
 	float outZ = 0.f;
 
+    const float DEFAULT_MIN_X_MAG = -500.f;
+    const float DEFAULT_MAX_X_MAG = 1000.f;
+    const float DEFAULT_MIN_Y_MAG = -200.f;
+    const float DEFAULT_MAX_Y_MAG = 200.f;
+    const float DEFAULT_MIN_Z_MAG = -40.f;
+    const float DEFAULT_MAX_Z_MAG = 2500.f;
+
+    const float DEFAULT_MIN_X_ACC = -100.f;
+    const float DEFAULT_MAX_X_ACC = 100.f;
+    const float DEFAULT_MIN_Y_ACC = -100.f;
+    const float DEFAULT_MAX_Y_ACC = 100.f;
+    const float DEFAULT_MIN_Z_ACC = -100.f;
+    const float DEFAULT_MAX_Z_ACC = 100.f;
+
+    float sensorMinX = DEFAULT_MIN_X_MAG;
+    float sensorMaxX = DEFAULT_MAX_X_MAG;
+    float sensorMinY = DEFAULT_MIN_Y_MAG;
+    float sensorMaxY = DEFAULT_MAX_Y_MAG;
+    float sensorMinZ = DEFAULT_MIN_Z_MAG;
+    float sensorMaxZ = DEFAULT_MAX_Z_MAG;
+
 	float timeSinceLastRequest = 0.f;
 	bool isFetching = false;
 
@@ -131,7 +152,7 @@ std::string PhyPhoxSensor::getQueryParams(Sensor sensor) {
         case PhyPhoxSensor::SENSOR_MAG:
             return "magX&magY&magZ";
         case PhyPhoxSensor::SENSOR_ACC:
-            return "accX&accY&ccZ";
+            return "accX&accY&accZ";
         default:
             return "";
     }
@@ -230,9 +251,9 @@ void fetchHttpAsync(PhyPhoxSensor* module, int requestId) {
                 cout << "sensorZ = " << sensorZ << endl;
             }
 
-            float scaledX = scaleAndClamp(sensorX, -500.0f, 1000.0f, -5.0f, 5.0f);
-            float scaledY = scaleAndClamp(sensorY, -200.0f, 200.0f, -5.0f, 5.0f);
-            float scaledZ = scaleAndClamp(sensorZ, -40.0f, 2500.0f, -5.0f, 5.0f);
+            float scaledX = scaleAndClamp(sensorX, module->sensorMinX, module->sensorMaxX, -5.0f, 5.0f);
+            float scaledY = scaleAndClamp(sensorY, module->sensorMinY, module->sensorMaxY, -5.0f, 5.0f);
+            float scaledZ = scaleAndClamp(sensorZ, module->sensorMinZ, module->sensorMaxZ, -5.0f, 5.0f);
 
             if (module->debug) {
                 cout << "scaledX = " << scaledX << endl;
@@ -263,6 +284,21 @@ void PhyPhoxSensor::process(const ProcessArgs& args) {
 		if (!isFetching && timeSinceLastRequest >= 0.01f) {
             if (modeParam != sensor) {
                 initUrl();
+                if (sensor == Sensor::SENSOR_MAG) {
+                    sensorMinX = DEFAULT_MIN_X_MAG;
+                    sensorMaxX = DEFAULT_MAX_X_MAG;
+                    sensorMinY = DEFAULT_MIN_Y_MAG;
+                    sensorMaxY = DEFAULT_MAX_Y_MAG;
+                    sensorMinZ = DEFAULT_MIN_Z_MAG;
+                    sensorMaxZ = DEFAULT_MAX_Z_MAG;
+                } else if (sensor == Sensor::SENSOR_ACC) {
+                    sensorMinX = DEFAULT_MIN_X_ACC;
+                    sensorMaxX = DEFAULT_MAX_X_ACC;
+                    sensorMinY = DEFAULT_MIN_Y_ACC;
+                    sensorMaxY = DEFAULT_MAX_Y_ACC;
+                    sensorMinZ = DEFAULT_MIN_Z_ACC;
+                    sensorMaxZ = DEFAULT_MAX_Z_ACC;
+                }
             }
 
 			int id = nextRequestId++;
@@ -288,6 +324,9 @@ void PhyPhoxSensor::process(const ProcessArgs& args) {
 			}
 		}
 		
+        if (debug) {
+            cout << "sending voltages outX=" << outX << " outY=" << outY << " outZ" << outZ << endl;
+        }
 		outputs[OUT_X].setVoltage(outX);
 		outputs[OUT_Y].setVoltage(outY);
 		outputs[OUT_Z].setVoltage(outZ);
