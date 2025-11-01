@@ -42,7 +42,7 @@ struct PhyPhoxSensor : Module {
     std::string http = "http://";
     std::string ip = "192.168.1.25";
     std::string port = "8080";
-    std::string queryParams = "magX&magY&magZ";
+    std::string queryParams = "";
     std::string url;
 
     enum Sensor {
@@ -89,9 +89,7 @@ struct PhyPhoxSensor : Module {
 
         curl_global_init(CURL_GLOBAL_DEFAULT);
 
-        queryParams = getQueryParams(sensor);
-        
-        url = http.append(ip).append(":").append(port).append("/get?").append(queryParams);
+        initUrl();
         if (debug) {
             cout << "url is " << url << endl;
         }
@@ -100,10 +98,17 @@ struct PhyPhoxSensor : Module {
 		this->nextRequestId = 0;
 	}
 
+    void initUrl();
+
     std::string getQueryParams(Sensor sensor);
 
     void process(const ProcessArgs& args) override;
 };
+
+void PhyPhoxSensor::initUrl() {
+    queryParams = getQueryParams(sensor);
+    url = http.append(ip).append(":").append(port).append("/get?").append(queryParams);
+}
 
 std::string PhyPhoxSensor::getQueryParams(Sensor sensor) {
     switch (sensor)
@@ -129,6 +134,21 @@ static float getValue(const json j, const PhyPhoxSensor::Sensor sensor, const ch
     std::string p = getType(sensor).append(coord);
 
     return j["buffer"][p]["buffer"][0];
+}
+
+static float scaleAndClamp(
+    float rawValue,
+    float rawMin, float rawMax,
+    float outMin, float outMax
+) {
+    // 1. Normalize input to 0–1 range
+    float normalized = (rawValue - rawMin) / (rawMax - rawMin);
+
+    // 2. Scale to output range
+    float scaled = normalized * (outMax - outMin) + outMin;
+
+    // 3. Clamp to ensure bounds
+    return clamp(scaled, outMin, outMax);
 }
 
 // TODO will not work correctly with more than one module
@@ -183,10 +203,9 @@ void fetchHttpAsync(PhyPhoxSensor* module, int requestId) {
                 cout << "sensorZ = " << sensorZ << endl;
             }
 
-            // todo params + clearer
-            float scaledX = clamp((sensorX + 500.0f) * (10.0f / 1500.0f) - 5.0f, -5.0f, 5.0f);
-			float scaledY = clamp(((sensorY + 200.0f) * (10.0f / 400.0f)) - 5.0f, -5.0f, 5.0f);
-			float scaledZ = clamp(((sensorZ + 40.0f) * (10.0f / 2540.0f)) - 5.0f, -5.0f, 5.0f);
+            float scaledX = scaleAndClamp(sensorX, -500.0f, 1000.0f, -5.0f, 5.0f);
+            float scaledY = scaleAndClamp(sensorY, -200.0f, 200.0f, -5.0f, 5.0f);
+            float scaledZ = scaleAndClamp(sensorZ, -40.0f, 2500.0f, -5.0f, 5.0f);
 
             if (module->debug) {
                 cout << "scaledX = " << scaledX << endl;
