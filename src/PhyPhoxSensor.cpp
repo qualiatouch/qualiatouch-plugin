@@ -276,6 +276,21 @@ struct PhyPhoxWidget : ModuleWidget {
 		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 72.5)), module, PhyPhoxSensor::OUT_Y));
 		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 92.5)), module, PhyPhoxSensor::OUT_Z));
 	}
+
+	void draw(const DrawArgs& args) override {
+        std::string fontPath = asset::system("res/fonts/ShareTechMono-Regular.ttf");
+        std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
+
+	    if (font) {
+		    nvgFontFaceId(args.vg, font->handle);
+            nvgFontSize(args.vg, 13.0);
+            nvgTextAlign(args.vg, NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE);
+            std::string text = "MAG";
+            nvgText(args.vg, 12.0, 120.0, text.c_str(), NULL);
+        } else {
+            cerr << "failed to load font " << fontPath << endl;
+        }
+    }
 };
 
 
