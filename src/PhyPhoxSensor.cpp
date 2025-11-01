@@ -127,6 +127,8 @@ struct PhyPhoxSensor : Module {
     void setWidget(PhyPhoxWidget* widgetParam);
 
     void initUrl();
+    void initLimits();
+    void initSensor();
 
     std::string getQueryParams(Sensor sensor);
 
@@ -153,6 +155,27 @@ void PhyPhoxSensor::initUrl() {
     url = url.append(ip).append(":").append(port).append("/get?").append(queryParams);
     if (debug) {
         cout << "url = " << url << endl;
+    }
+}
+
+void PhyPhoxSensor::initLimits() {
+    switch (sensor) {
+        case Sensor::SENSOR_MAG:
+            sensorMinX = DEFAULT_MIN_X_MAG;
+            sensorMaxX = DEFAULT_MAX_X_MAG;
+            sensorMinY = DEFAULT_MIN_Y_MAG;
+            sensorMaxY = DEFAULT_MAX_Y_MAG;
+            sensorMinZ = DEFAULT_MIN_Z_MAG;
+            sensorMaxZ = DEFAULT_MAX_Z_MAG;
+            break;
+        case Sensor::SENSOR_ACC:
+            sensorMinX = DEFAULT_MIN_X_ACC;
+            sensorMaxX = DEFAULT_MAX_X_ACC;
+            sensorMinY = DEFAULT_MIN_Y_ACC;
+            sensorMaxY = DEFAULT_MAX_Y_ACC;
+            sensorMinZ = DEFAULT_MIN_Z_ACC;
+            sensorMaxZ = DEFAULT_MAX_Z_ACC;
+            break;
     }
 }
 
@@ -373,27 +396,17 @@ struct PhyPhoxWidget : ModuleWidget {
     void setDirty();
 };
 
+void PhyPhoxSensor::initSensor() {
+    initUrl();
+    initLimits();
+    widget->setDirty();
+}
+
 void PhyPhoxSensor::process(const ProcessArgs& args) {
 		timeSinceLastRequest += args.sampleTime;
 		if (!isFetching && timeSinceLastRequest >= 0.01f) {
             if (modeParam != sensor) {
-                initUrl();
-                if (sensor == Sensor::SENSOR_MAG) {
-                    sensorMinX = DEFAULT_MIN_X_MAG;
-                    sensorMaxX = DEFAULT_MAX_X_MAG;
-                    sensorMinY = DEFAULT_MIN_Y_MAG;
-                    sensorMaxY = DEFAULT_MAX_Y_MAG;
-                    sensorMinZ = DEFAULT_MIN_Z_MAG;
-                    sensorMaxZ = DEFAULT_MAX_Z_MAG;
-                } else if (sensor == Sensor::SENSOR_ACC) {
-                    sensorMinX = DEFAULT_MIN_X_ACC;
-                    sensorMaxX = DEFAULT_MAX_X_ACC;
-                    sensorMinY = DEFAULT_MIN_Y_ACC;
-                    sensorMaxY = DEFAULT_MAX_Y_ACC;
-                    sensorMinZ = DEFAULT_MIN_Z_ACC;
-                    sensorMaxZ = DEFAULT_MAX_Z_ACC;
-                }
-                widget->setDirty();
+                initSensor();
             }
 
 			int id = nextRequestId++;
