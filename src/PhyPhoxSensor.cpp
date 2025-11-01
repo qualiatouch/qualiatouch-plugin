@@ -12,6 +12,8 @@
 using json = nlohmann::json;
 using namespace std;
 
+struct PhyPhoxWidget;
+
 static size_t CurlWriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
     ((std::string*)userp)->append((char*)contents, size * nmemb);
     return size * nmemb;
@@ -102,6 +104,8 @@ struct PhyPhoxSensor : Module {
 		return a.requestId > b.requestId;  // Min-heap
 	}};
 
+    PhyPhoxWidget* widget;
+
 	PhyPhoxSensor() {
 		config(PARAMS_LEN, INPUTS_LEN, NUM_OUTPUTS, LIGHTS_LEN);
 
@@ -120,12 +124,18 @@ struct PhyPhoxSensor : Module {
 		this->nextRequestId = 0;
 	}
 
+    void setWidget(PhyPhoxWidget* widgetParam);
+
     void initUrl();
 
     std::string getQueryParams(Sensor sensor);
 
     void process(const ProcessArgs& args) override;
 };
+
+void PhyPhoxSensor::setWidget(PhyPhoxWidget* widgetParam) {
+    widget = widgetParam;
+}
 
 void PhyPhoxSensor::initUrl() {
     sensor = (Sensor) modeParam;
@@ -279,6 +289,90 @@ void fetchHttpAsync(PhyPhoxSensor* module, int requestId) {
     module->isFetching = false;
 }
 
+struct SensorTypeWidget : Widget {
+    PhyPhoxSensor* module;
+
+	void draw(const DrawArgs& args) override {
+        std::string fontPath = asset::system("res/fonts/ShareTechMono-Regular.ttf");
+        std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
+        if (module->debug) {
+            cout << "SensorTypeWidget:draw() sensor = " << module->sensor << endl;
+        }
+
+	    if (font) {
+		    nvgFontFaceId(args.vg, font->handle);
+            nvgFontSize(args.vg, 13.0);
+            nvgTextAlign(args.vg, NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE);
+            std::string text = getText(module);
+            nvgText(args.vg, 0.0, 10.0, text.c_str(), NULL);
+        } else {
+            cerr << "failed to load font " << fontPath << endl;
+        }
+    }
+
+    void setModule(PhyPhoxSensor* moduleParam) {
+        module = moduleParam;
+    }
+
+    std::string getText(PhyPhoxSensor* module) {
+        switch (module->sensor)
+        {
+            case PhyPhoxSensor::Sensor::SENSOR_MAG:
+                return "MAG";
+            case PhyPhoxSensor::Sensor::SENSOR_ACC:
+                return "ACC";
+            default:
+                return "ERR";
+        }
+    }
+};
+
+struct PhyPhoxWidget : ModuleWidget {
+    PhyPhoxSensor* module;
+    FramebufferWidget* frameBufferWidget;
+    SensorTypeWidget* sensorTypeWidget;
+
+	PhyPhoxWidget(PhyPhoxSensor* moduleParam) {
+        module = moduleParam;
+		setModule(module);
+        module->setWidget(this);
+
+		setPanel(createPanel(asset::plugin(pluginInstance, "res/phyphox-sensor.svg")));
+
+		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
+		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 52.5)), module, PhyPhoxSensor::OUT_X));
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 72.5)), module, PhyPhoxSensor::OUT_Y));
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 92.5)), module, PhyPhoxSensor::OUT_Z));
+
+        frameBufferWidget = new FramebufferWidget;
+        addChild(frameBufferWidget);
+
+        sensorTypeWidget = createWidget<SensorTypeWidget>(Vec(13.0, 120.0));
+        sensorTypeWidget->setSize(Vec(100, 100));
+        sensorTypeWidget->setModule(module);
+        frameBufferWidget->addChild(sensorTypeWidget);
+	}
+
+    void appendContextMenu(Menu* menu) override {
+        menu->addChild(new MenuSeparator);
+        menu->addChild(createMenuLabel("Sensor settings"));
+
+        menu->addChild(createIndexPtrSubmenuItem("Sensor type",
+            {
+                "Magnetic",
+                "Acceleration"
+            },
+            &module->modeParam
+        ));
+    }
+
+    void setDirty();
+};
+
 void PhyPhoxSensor::process(const ProcessArgs& args) {
 		timeSinceLastRequest += args.sampleTime;
 		if (!isFetching && timeSinceLastRequest >= 0.01f) {
@@ -299,6 +393,7 @@ void PhyPhoxSensor::process(const ProcessArgs& args) {
                     sensorMinZ = DEFAULT_MIN_Z_ACC;
                     sensorMaxZ = DEFAULT_MAX_Z_ACC;
                 }
+                widget->setDirty();
             }
 
 			int id = nextRequestId++;
@@ -325,70 +420,15 @@ void PhyPhoxSensor::process(const ProcessArgs& args) {
 		}
 		
         if (debug) {
-            cout << "sending voltages outX=" << outX << " outY=" << outY << " outZ" << outZ << endl;
+            // cout << "sending voltages outX=" << outX << " outY=" << outY << " outZ" << outZ << endl;
         }
 		outputs[OUT_X].setVoltage(outX);
 		outputs[OUT_Y].setVoltage(outY);
 		outputs[OUT_Z].setVoltage(outZ);
 }
 
-struct SensorTypeWidget : Widget {
-	void draw(const DrawArgs& args) override {
-        std::string fontPath = asset::system("res/fonts/ShareTechMono-Regular.ttf");
-        std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
-        cout << "draw()" << endl;
-
-	    if (font) {
-		    nvgFontFaceId(args.vg, font->handle);
-            nvgFontSize(args.vg, 13.0);
-            nvgTextAlign(args.vg, NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE);
-            std::string text = "MAG";
-            nvgText(args.vg, 0.0, 10.0, text.c_str(), NULL);
-        } else {
-            cerr << "failed to load font " << fontPath << endl;
-        }
-    }
-};
-
-struct PhyPhoxWidget : ModuleWidget {
-    PhyPhoxSensor* module;
-    FramebufferWidget* frameBufferWidget;
-    SensorTypeWidget* sensorTypeWidget;
-
-	PhyPhoxWidget(PhyPhoxSensor* moduleParam) {
-        module = moduleParam;
-		setModule(module);
-		setPanel(createPanel(asset::plugin(pluginInstance, "res/phyphox-sensor.svg")));
-
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 52.5)), module, PhyPhoxSensor::OUT_X));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 72.5)), module, PhyPhoxSensor::OUT_Y));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 92.5)), module, PhyPhoxSensor::OUT_Z));
-
-        frameBufferWidget = new FramebufferWidget;
-        addChild(frameBufferWidget);
-
-        sensorTypeWidget = createWidget<SensorTypeWidget>(Vec(13.0, 120.0));
-        sensorTypeWidget->setSize(Vec(100, 100));
-        frameBufferWidget->addChild(sensorTypeWidget);
-	}
-
-	void appendContextMenu(Menu* menu) override {
-		menu->addChild(new MenuSeparator);
-		menu->addChild(createMenuLabel("Sensor settings"));
-
-		menu->addChild(createIndexPtrSubmenuItem("Sensor type",
-			{
-                "Magnetic",
-                "Acceleration"
-            },
-			&module->modeParam
-		));
-    }
-};
+void PhyPhoxWidget::setDirty() {
+    frameBufferWidget->setDirty();
+}
 
 Model* modelPhyPhoxSensor = createModel<PhyPhoxSensor, PhyPhoxWidget>("PhyPhoxSensor");
