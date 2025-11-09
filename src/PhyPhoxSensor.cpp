@@ -130,6 +130,8 @@ struct PhyPhoxSensor : Module {
     void initLimits();
     void initSensor();
 
+    void setIpAddress(std::string newIp);
+
     std::string getQueryParams(Sensor sensor);
 
     void process(const ProcessArgs& args) override;
@@ -137,6 +139,11 @@ struct PhyPhoxSensor : Module {
 
 void PhyPhoxSensor::setWidget(PhyPhoxWidget* widgetParam) {
     widget = widgetParam;
+}
+
+void PhyPhoxSensor::setIpAddress(std::string newIp) {
+    ip = newIp;
+    initUrl();
 }
 
 void PhyPhoxSensor::initUrl() {
@@ -312,6 +319,47 @@ void fetchHttpAsync(PhyPhoxSensor* module, int requestId) {
     module->isFetching = false;
 }
 
+struct IpAddressField : ui::TextField {
+    PhyPhoxSensor* module;
+
+    IpAddressField(PhyPhoxSensor* moduleParam) {
+        module = moduleParam;
+        box.size.x = 200;
+        placeholder = "192.168.1.25";
+    }
+
+    void onSelectKey(const event::SelectKey& e) override {
+        if (e.action == GLFW_PRESS && e.key == GLFW_KEY_ENTER) {
+            std::string ip = text;
+            if (module) {
+                module->setIpAddress(ip);
+            }
+            ui::MenuOverlay* overlay = getAncestorOfType<ui::MenuOverlay>();
+            if (overlay) {
+                overlay->requestDelete();
+            }
+            e.consume(this);
+        }
+        if (!e.getTarget()) {
+            TextField::onSelectKey(e);
+        }
+    }
+};
+
+struct IpAddressMenuItem : ui::MenuItem {
+    PhyPhoxSensor* module;
+
+    Menu* createChildMenu() override {
+        Menu* menu = new Menu;
+
+        IpAddressField* ipField = new IpAddressField(module);
+        ipField->text = module->ip;
+        menu->addChild(ipField);
+
+        return menu;
+    }
+};
+
 struct SensorTypeWidget : Widget {
     PhyPhoxSensor* module;
 
@@ -382,7 +430,7 @@ struct PhyPhoxWidget : ModuleWidget {
 
     void appendContextMenu(Menu* menu) override {
         menu->addChild(new MenuSeparator);
-        menu->addChild(createMenuLabel("Sensor settings"));
+        menu->addChild(createMenuLabel("Sensor settings (PhyPhox app)"));
 
         menu->addChild(createIndexPtrSubmenuItem("Sensor type",
             {
@@ -391,6 +439,12 @@ struct PhyPhoxWidget : ModuleWidget {
             },
             &module->modeParam
         ));
+
+        IpAddressMenuItem* ipItem = new IpAddressMenuItem;
+        ipItem->text = "IP";
+        ipItem->rightText = module->ip + " " + RIGHT_ARROW;
+        ipItem->module = module;
+        menu->addChild(ipItem);
     }
 
     void setDirty();
