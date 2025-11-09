@@ -450,6 +450,8 @@ struct PhyPhoxWidget : ModuleWidget {
         ipItem->rightText = module->ip + " " + RIGHT_ARROW;
         ipItem->module = module;
         menu->addChild(ipItem);
+
+        menu->addChild(rack::createBoolPtrMenuItem("Debug Mode", "", &module->debug));
     }
 
     void setDirty();
