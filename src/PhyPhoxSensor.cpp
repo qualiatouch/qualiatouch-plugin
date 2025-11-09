@@ -42,8 +42,7 @@ struct PhyPhoxSensor : Module {
     std::atomic<bool> dataReady;
 
     std::string http = "http://";
-    std::string ip = "192.168.1.25";
-    std::string port = "8080";
+    std::string ip = "192.168.1.25:8080";
     std::string queryParams = "";
     std::string url;
 
@@ -159,7 +158,7 @@ void PhyPhoxSensor::initUrl() {
     }
 
     url = http;
-    url = url.append(ip).append(":").append(port).append("/get?").append(queryParams);
+    url = url.append(ip).append("/get?").append(queryParams);
     if (debug) {
         cout << "url = " << url << endl;
     }
@@ -319,13 +318,19 @@ void fetchHttpAsync(PhyPhoxSensor* module, int requestId) {
     module->isFetching = false;
 }
 
+// ui::OptionButton
+
+// todo save params
+// todo same for debug
+// todo same for dmx address
+
 struct IpAddressField : ui::TextField {
     PhyPhoxSensor* module;
 
     IpAddressField(PhyPhoxSensor* moduleParam) {
         module = moduleParam;
         box.size.x = 200;
-        placeholder = "192.168.1.25";
+        placeholder = "192.168.1.25:8080";
     }
 
     void onSelectKey(const event::SelectKey& e) override {
@@ -441,7 +446,7 @@ struct PhyPhoxWidget : ModuleWidget {
         ));
 
         IpAddressMenuItem* ipItem = new IpAddressMenuItem;
-        ipItem->text = "IP";
+        ipItem->text = "IP & port";
         ipItem->rightText = module->ip + " " + RIGHT_ARROW;
         ipItem->module = module;
         menu->addChild(ipItem);
