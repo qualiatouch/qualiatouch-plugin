@@ -54,6 +54,9 @@ struct PhyPhoxSensor : Module {
     Sensor sensor = SENSOR_MAG;
     int modeParam = SENSOR_MAG;
 
+    std::string modeParamJsonKey = "modeParam";
+    std::string ipJsonKey = "ip";
+
 	float outX = 0.f;
 	float outY = 0.f;
 	float outZ = 0.f;
@@ -134,6 +137,9 @@ struct PhyPhoxSensor : Module {
     std::string getQueryParams(Sensor sensor);
 
     void process(const ProcessArgs& args) override;
+
+    json_t* dataToJson() override;
+    void dataFromJson(json_t* rootJson) override;
 };
 
 void PhyPhoxSensor::setWidget(PhyPhoxWidget* widgetParam) {
@@ -318,11 +324,34 @@ void fetchHttpAsync(PhyPhoxSensor* module, int requestId) {
     module->isFetching = false;
 }
 
-// ui::OptionButton
+json_t* PhyPhoxSensor::dataToJson() {
+    json_t* rootJson = json_object();
+    json_object_set_new(rootJ, ipJsonKey.c_str(), json_string(ip.c_str()));
+    json_object_set_new(rootJ, modeParamJsonKey.c_str(), json_integer(modeParam));
 
-// todo save params
-// todo same for debug
-// todo same for dmx address
+    return rootJson;
+}
+
+void PhyPhoxSensor::dataFromJson(json_t* rootJson)  {
+    if (debug) {
+        char* jsonStr = json_dumps(rootJson, JSON_INDENT(2));
+        cout << "Loading JSON: " << jsonStr << endl;
+        free(jsonStr);
+    }
+
+    json_t* modeParamJson = json_object_get(rootJson, modeParamJsonKey.c_str());
+    if (modeParamJson) {
+        modeParam = json_integer_value(modeParamJson);
+    }
+
+    json_t* ipJson = json_object_get(rootJson, ipJsonKey.c_str());
+    if (ipJson) {
+        const char* ipValue = json_string_value(ipJson);
+        if (ipValue) {
+            ip = ipValue;
+        }
+    }
+}
 
 struct IpAddressField : ui::TextField {
     PhyPhoxSensor* module;
