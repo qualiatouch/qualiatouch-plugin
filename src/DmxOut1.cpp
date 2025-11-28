@@ -48,7 +48,7 @@ struct DmxOut1 : Module {
 
     // dmx params
     unsigned int dmxUniverse = 1;
-    unsigned int dmxAddress = 0;
+    unsigned int dmxAddress = 1;
 
     ola::DmxBuffer buffer;
 
@@ -108,7 +108,7 @@ void DmxOut1::process(const ProcessArgs& args) {
     dmx0 = static_cast<uint8_t>(clamped0 * 255.f / 10.f);
 
     if (debug) {
-        cout << loop << " : " << args.sampleTime << " " << "channel0 = " << input0 << " dmx0 = " << dmx0 << " : ";
+        cout << loop << " : " << args.sampleTime << " " << "channel0 = " << input0 << " dmx0 = " << dmx0 << " channel " << dmxAddress << " : ";
     }
 
     buffer.SetChannel(dmxAddress, dmx0);
