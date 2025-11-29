@@ -326,8 +326,8 @@ void fetchHttpAsync(PhyPhoxSensor* module, int requestId) {
 
 json_t* PhyPhoxSensor::dataToJson() {
     json_t* rootJson = json_object();
-    json_object_set_new(rootJ, ipJsonKey.c_str(), json_string(ip.c_str()));
-    json_object_set_new(rootJ, modeParamJsonKey.c_str(), json_integer(modeParam));
+    json_object_set_new(rootJson, ipJsonKey.c_str(), json_string(ip.c_str()));
+    json_object_set_new(rootJson, modeParamJsonKey.c_str(), json_integer(modeParam));
 
     return rootJson;
 }
