@@ -35,6 +35,8 @@ struct DmxOut1 : Module {
         OUTPUTS_LEN
     };
 
+    std::string dmxAddressJsonKey = "dmxAddress";
+
     // module params
 	float timeSinceLastLoop = 0.f;
     int loop = 0;
@@ -91,6 +93,9 @@ struct DmxOut1 : Module {
     }
 
     void process(const ProcessArgs& arg) override;
+
+    json_t* dataToJson() override;
+    void dataFromJson(json_t* rootJson) override;
 };
 
 void DmxOut1::process(const ProcessArgs& args) {
@@ -124,6 +129,26 @@ void DmxOut1::process(const ProcessArgs& args) {
 
     timeSinceLastLoop = 0.0f;
     loop++;
+}
+
+json_t* DmxOut1::dataToJson() {
+    json_t* rootJson = json_object();
+    json_object_set_new(rootJson, dmxAddressJsonKey.c_str(), json_integer(dmxAddress));
+
+    return rootJson;
+}
+
+void DmxOut1::dataFromJson(json_t* rootJson)  {
+    if (debug) {
+        char* jsonStr = json_dumps(rootJson, JSON_INDENT(2));
+        cout << "Loading JSON: " << jsonStr << endl;
+        free(jsonStr);
+    }
+
+    json_t* dmxAddressParamJson = json_object_get(rootJson, dmxAddressJsonKey.c_str());
+    if (dmxAddressParamJson) {
+        dmxAddress = json_integer_value(dmxAddressParamJson);
+    }
 }
 
 struct DmxAddressField : ui::TextField {
