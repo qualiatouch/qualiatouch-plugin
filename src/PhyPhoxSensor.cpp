@@ -85,7 +85,7 @@ struct PhyPhoxSensor : Module {
 	float timeSinceLastRequest = 0.f;
 	bool isFetching = false;
 
-    bool debug = true;
+    bool debug = false;
 
 	std::atomic<int> nextRequestId;
 	int nextExpectedId = 0;

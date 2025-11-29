@@ -194,6 +194,8 @@ struct DmxOut1Widget : ModuleWidget {
         addressItem->rightText = std::to_string(module->dmxAddress) + " " + RIGHT_ARROW;
         addressItem->module = module;
         menu->addChild(addressItem);
+
+        menu->addChild(rack::createBoolPtrMenuItem("Debug Mode", "", &module->debug));
     }
 };
 
