@@ -126,11 +126,54 @@ void DmxOut1::process(const ProcessArgs& args) {
     loop++;
 }
 
+struct DmxAddressField : ui::TextField {
+    DmxOut1* module;
+
+    DmxAddressField(DmxOut1* moduleParam) {
+        module = moduleParam;
+        box.size.x = 100;
+        placeholder = "0";
+    }
+
+    void onSelectKey(const event::SelectKey& e) override {
+        if (e.action == GLFW_PRESS && e.key == GLFW_KEY_ENTER) {
+            int dmxAddress = std::stoi(text);
+            if (module) {
+                module->dmxAddress = dmxAddress;
+            }
+            ui::MenuOverlay* overlay = getAncestorOfType<ui::MenuOverlay>();
+            if (overlay) {
+                overlay->requestDelete();
+            }
+            e.consume(this);
+        }
+        if (!e.getTarget()) {
+            TextField::onSelectKey(e);
+        }
+    }
+};
+
+struct DmxAddressMenuItem : ui::MenuItem {
+    DmxOut1* module;
+
+    Menu* createChildMenu() override {
+        Menu* menu = new Menu;
+
+        DmxAddressField* addressField = new DmxAddressField(module);
+        addressField->text = std::to_string(module->dmxAddress);
+        menu->addChild(addressField);
+
+        return menu;
+    }
+};
 
 struct DmxOut1Widget : ModuleWidget {
-    DmxOut1Widget(DmxOut1* module) {
+    DmxOut1* module;
+
+    DmxOut1Widget(DmxOut1* moduleParam) {
         cout << "[DMX] construct DmxOut1Widget" << endl;
 
+        module = moduleParam;
         setModule(module);
 
         setPanel(createPanel(asset::plugin(pluginInstance, "res/dmx-out-1.svg")));
@@ -139,6 +182,18 @@ struct DmxOut1Widget : ModuleWidget {
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+    }
+
+
+    void appendContextMenu(Menu* menu) override {
+        menu->addChild(new MenuSeparator);
+        menu->addChild(createMenuLabel("DMX settings"));
+
+        DmxAddressMenuItem* addressItem = new DmxAddressMenuItem;
+        addressItem->text = "DMX Address";
+        addressItem->rightText = std::to_string(module->dmxAddress) + " " + RIGHT_ARROW;
+        addressItem->module = module;
+        menu->addChild(addressItem);
     }
 };
 
