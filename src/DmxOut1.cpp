@@ -19,6 +19,7 @@ using namespace rack;
 
 struct DmxOut1 : Module {
     enum ParamId {
+        BLACKOUT_BUTTON,
         PARAMS_LEN
     };
 
@@ -48,6 +49,10 @@ struct DmxOut1 : Module {
     float clamped0;
     float dmx0;
 
+    // blackout button
+    dsp::SchmittTrigger blackoutTrigger;
+    bool blackoutTriggered = false;
+
     // dmx params
     unsigned int dmxUniverse = 1;
     unsigned int dmxAddress = 1;
@@ -64,6 +69,7 @@ struct DmxOut1 : Module {
         // # init Module
         config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
+        configButton(BLACKOUT_BUTTON, "Blackout");
         configInput(INPUT_CHANNEL_0, "channel 0");
 
         // # init OLA / DMX
@@ -104,6 +110,11 @@ void DmxOut1::process(const ProcessArgs& args) {
         return;
     }
 
+    if (blackoutTrigger.process(params[BLACKOUT_BUTTON].getValue())) {
+        blackoutTriggered = true;
+        return;
+    }
+
     Module* leftModule = getLeftExpander().module;
     if (leftModule &&leftModule->model->plugin->name == "QualiaTouch"
             && leftModule->model->slug == "DmxOut1") {
@@ -113,15 +124,24 @@ void DmxOut1::process(const ProcessArgs& args) {
         return;
     }
 
-
-
     DmxOut1* m = this;
     int channel = m->dmxAddress;
 
-    cout << "loop " << loop << "(" << args.sampleTime << ") - begin" << endl;
+    if (debug) {
+        cout << "loop " << loop << "(" << args.sampleTime << ") - begin" << endl;
+    }
     int i = 0;
 
     while (m && i < 20) {
+        // todo should trigger all blackouts
+        if (m->blackoutTriggered) {
+            if (debug) {
+                cout << "blackout triggered on module " << i << " - sending blackout" << endl;
+            }
+            buffer.Blackout();
+            break;
+        }
+
         Input input = m->getInput(DmxOut1::INPUT_CHANNEL_0);
         if (input.isConnected()) {
             float voltage = input.getVoltage();
@@ -152,7 +172,7 @@ void DmxOut1::process(const ProcessArgs& args) {
     }
 
     if (debug) {
-        cout << "   got " << i << " modules - sending DMX... ";
+        cout << "   got " << i << " modules - sending DMX : " << buffer.ToString();
     }
 
     if (!ola_client->SendDmx(dmxUniverse, buffer)) {
@@ -242,6 +262,7 @@ struct DmxOut1Widget : ModuleWidget {
         setPanel(createPanel(asset::plugin(pluginInstance, "res/dmx-out-1.svg")));
 
         addInput(createInputCentered<PJ301MPort>(mm2px(Vec(7.625, 42.5)), module, DmxOut1::INPUT_CHANNEL_0));
+        addParam(createParamCentered<CKD6>(mm2px(Vec(7.625, 90.0)), module, DmxOut1::BLACKOUT_BUTTON));
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
@@ -258,6 +279,7 @@ struct DmxOut1Widget : ModuleWidget {
         addressItem->module = module;
         menu->addChild(addressItem);
 
+        menu->addChild(rack::createBoolPtrMenuItem("Blackout triggered", "", &module->blackoutTriggered));
         menu->addChild(rack::createBoolPtrMenuItem("Debug Mode", "", &module->debug));
     }
 };
