@@ -99,24 +99,62 @@ struct DmxOut1 : Module {
 };
 
 void DmxOut1::process(const ProcessArgs& args) {
-	timeSinceLastLoop += args.sampleTime;
+    timeSinceLastLoop += args.sampleTime;
     if (timeSinceLastLoop < sampleRate) {
         return;
     }
 
-    if (false == inputs[DmxOut1::INPUT_CHANNEL_0].isConnected()) {
+    Module* leftModule = getLeftExpander().module;
+    if (leftModule &&leftModule->model->plugin->name == "QualiaTouch"
+            && leftModule->model->slug == "DmxOut1") {
+        // todo improve loop management
+        loop++;
+        timeSinceLastLoop = 0.0f;
         return;
     }
 
-    input0 = inputs[DmxOut1::INPUT_CHANNEL_0].getVoltage();
-    clamped0 = clamp(input0, 0.f, 10.f);
-    dmx0 = static_cast<uint8_t>(clamped0 * 255.f / 10.f);
 
-    if (debug) {
-        cout << loop << " : " << args.sampleTime << " " << "channel0 = " << input0 << " dmx0 = " << dmx0 << " channel " << dmxAddress << " : ";
+
+    DmxOut1* m = this;
+    int channel = m->dmxAddress;
+
+    cout << "loop " << loop << "(" << args.sampleTime << ") - begin" << endl;
+    int i = 0;
+
+    while (m && i < 20) {
+        Input input = m->getInput(DmxOut1::INPUT_CHANNEL_0);
+        if (input.isConnected()) {
+            float voltage = input.getVoltage();
+            float clamped = clamp(voltage, 0.f, 10.f);
+            int dmx = static_cast<uint8_t>(clamped * 255.f / 10.f);
+            if (debug) {
+                cout << "   " << i << ": module " << m->id << "channel " << channel << " voltage " << voltage << " dmx " << dmx << endl;
+            }
+
+            buffer.SetChannel(channel, dmx);
+        } else {
+            if (debug) {
+                cout << "   " << i << ": module " << m->id << " input not connected" << endl;
+            }
+        }
+
+        Module* rightModule = m->getRightExpander().module;
+        if (rightModule
+            && rightModule->model->plugin->name == "QualiaTouch"
+            && rightModule->model->slug == "DmxOut1")
+        {
+            m = dynamic_cast<DmxOut1*>(rightModule);
+            channel++;
+        } else {
+            m = nullptr;
+        }
+        i++;
     }
 
-    buffer.SetChannel(dmxAddress, dmx0);
+    if (debug) {
+        cout << "   got " << i << " modules - sending DMX... ";
+    }
+
     if (!ola_client->SendDmx(dmxUniverse, buffer)) {
         if (debug) {
             cout << "Sending DMX failed" << endl;
