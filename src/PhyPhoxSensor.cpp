@@ -395,39 +395,18 @@ struct IpAddressMenuItem : ui::MenuItem {
 };
 
 struct SensorTypeWidget : Widget {
-    PhyPhoxSensor* module;
-
 	void draw(const DrawArgs& args) override {
         std::string fontPath = asset::system("res/fonts/ShareTechMono-Regular.ttf");
         std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
-        if (module->debug) {
-            cout << "SensorTypeWidget:draw() sensor = " << module->sensor << endl;
-        }
 
 	    if (font) {
 		    nvgFontFaceId(args.vg, font->handle);
             nvgFontSize(args.vg, 13.0);
             nvgTextAlign(args.vg, NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE);
-            std::string text = getText(module);
+            std::string text = "";
             nvgText(args.vg, 0.0, 10.0, text.c_str(), NULL);
         } else {
             cerr << "failed to load font " << fontPath << endl;
-        }
-    }
-
-    void setModule(PhyPhoxSensor* moduleParam) {
-        module = moduleParam;
-    }
-
-    std::string getText(PhyPhoxSensor* module) {
-        switch (module->sensor)
-        {
-            case PhyPhoxSensor::Sensor::SENSOR_MAG:
-                return "MAG";
-            case PhyPhoxSensor::Sensor::SENSOR_ACC:
-                return "ACC";
-            default:
-                return "ERR";
         }
     }
 };
@@ -440,7 +419,6 @@ struct PhyPhoxWidget : ModuleWidget {
 	PhyPhoxWidget(PhyPhoxSensor* moduleParam) {
         module = moduleParam;
 		setModule(module);
-        module->setWidget(this);
 
 		setPanel(createPanel(asset::plugin(pluginInstance, "res/phyphox-sensor.svg")));
 
@@ -458,7 +436,6 @@ struct PhyPhoxWidget : ModuleWidget {
 
         sensorTypeWidget = createWidget<SensorTypeWidget>(Vec(13.0, 120.0));
         sensorTypeWidget->setSize(Vec(100, 100));
-        sensorTypeWidget->setModule(module);
         frameBufferWidget->addChild(sensorTypeWidget);
 	}
 
@@ -489,7 +466,6 @@ struct PhyPhoxWidget : ModuleWidget {
 void PhyPhoxSensor::initSensor() {
     initUrl();
     initLimits();
-    widget->setDirty();
 }
 
 void PhyPhoxSensor::process(const ProcessArgs& args) {
