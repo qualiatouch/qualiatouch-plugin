@@ -18,5 +18,8 @@ DISTRIBUTABLES += res
 DISTRIBUTABLES += $(wildcard LICENSE*)
 DISTRIBUTABLES += $(wildcard README*)
 
+# json
+PLUGIN_CPPFLAGS += -Isrc
+
 # Include the Rack plugin Makefile framework
 include $(RACK_DIR)/plugin.mk

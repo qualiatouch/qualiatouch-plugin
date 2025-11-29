@@ -20,6 +20,15 @@
       "tags": [
         "External"
       ]
+    },
+    {
+      "slug": "PhyPhoxSensor",
+      "name": "PhyPhox Sensor",
+      "description": "Receive smartphone sensor data from PhyPhox app",
+      "manualUrl": "",
+      "tags": [
+        "External"
+      ]
     }
   ]
 }
