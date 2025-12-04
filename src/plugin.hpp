@@ -5,5 +5,5 @@ using namespace rack;
 
 extern Plugin* pluginInstance;
 
-extern Model *modelDmx1Out;
+extern Model *modelDmxOut1;
 extern Model *modelPhyPhoxSensor;

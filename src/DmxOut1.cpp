@@ -287,4 +287,4 @@ struct DmxOut1Widget : ModuleWidget {
     }
 };
 
-Model* modelDmx1Out = createModel<DmxOut1, DmxOut1Widget>("DmxOut1");
+Model* modelDmxOut1 = createModel<DmxOut1, DmxOut1Widget>("DmxOut1");
