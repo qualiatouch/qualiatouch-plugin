@@ -102,7 +102,13 @@ struct DmxOut1 : Module {
 
     json_t* dataToJson() override;
     void dataFromJson(json_t* rootJson) override;
+    bool isSameModel(Module* otherModule);
 };
+
+bool DmxOut1::isSameModel(Module* otherModule) {
+    return otherModule->model->plugin->name == "QualiaTouch"
+        && otherModule->model->slug == "DmxOut1";
+}
 
 void DmxOut1::process(const ProcessArgs& args) {
     timeSinceLastLoop += args.sampleTime;
@@ -116,8 +122,7 @@ void DmxOut1::process(const ProcessArgs& args) {
     }
 
     Module* leftModule = getLeftExpander().module;
-    if (leftModule &&leftModule->model->plugin->name == "QualiaTouch"
-            && leftModule->model->slug == "DmxOut1") {
+    if (leftModule && isSameModel(leftModule)) {
         // todo improve loop management
         loop++;
         timeSinceLastLoop = 0.0f;
@@ -159,9 +164,7 @@ void DmxOut1::process(const ProcessArgs& args) {
         }
 
         Module* rightModule = m->getRightExpander().module;
-        if (rightModule
-            && rightModule->model->plugin->name == "QualiaTouch"
-            && rightModule->model->slug == "DmxOut1")
+        if (rightModule && isSameModel(rightModule))
         {
             m = dynamic_cast<DmxOut1*>(rightModule);
             channel++;
