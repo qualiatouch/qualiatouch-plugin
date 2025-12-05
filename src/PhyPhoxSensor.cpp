@@ -60,9 +60,17 @@ struct PhyPhoxSensor : Module {
     };
 
     Sensor sensor = SENSOR_MAG;
-    int modeParam = SENSOR_MAG;
+    int sensorModeParam = SENSOR_MAG;
 
-    std::string modeParamJsonKey = "modeParam";
+    enum VoltageMode {
+        UNIPOLAR = 0,
+        BIPOLAR = 1
+    };
+
+    VoltageMode voltageMode = UNIPOLAR;
+
+    std::string sensorModeParamJsonKey = "sensorModeParam";
+    std::string voltageModeJsonKey = "voltageMode";
     std::string ipJsonKey = "ip";
 
 	float outX = 0.f;
@@ -158,6 +166,8 @@ struct PhyPhoxSensor : Module {
 
     std::string getQueryParams(Sensor sensor);
 
+    float calculateOutputVoltage(float rawValue, float rawMin, float rawMax);
+
     void process(const ProcessArgs& args) override;
 
     json_t* dataToJson() override;
@@ -174,7 +184,7 @@ void PhyPhoxSensor::setIpAddress(std::string newIp) {
 }
 
 void PhyPhoxSensor::initUrl() {
-    sensor = (Sensor) modeParam;
+    sensor = (Sensor) sensorModeParam;
     if (debug) {
         cout << "initUrl() sensor = " << sensor << endl;
     }
@@ -309,6 +319,16 @@ static float scaleAndClamp(
     return clamp(scaled, outMin, outMax);
 }
 
+float PhyPhoxSensor::calculateOutputVoltage(float rawValue, float rawMin, float rawMax) {
+    switch (voltageMode) {
+        case VoltageMode::BIPOLAR:
+            return scaleAndClamp(rawValue, rawMin, rawMax, -5.0f, 5.0f);
+        case VoltageMode::UNIPOLAR:
+        default:
+            return scaleAndClamp(rawValue, rawMin, rawMax, 0.f, 10.f);
+    }
+}
+
 // TODO will not work correctly with more than one module
 
 void fetchHttpAsync(PhyPhoxSensor* module, int requestId) {
@@ -361,18 +381,18 @@ void fetchHttpAsync(PhyPhoxSensor* module, int requestId) {
                 cout << "sensorZ = " << sensorZ << endl;
             }
 
-            float scaledX = scaleAndClamp(sensorX, module->sensorMinX, module->sensorMaxX, -5.0f, 5.0f);
-            float scaledY = scaleAndClamp(sensorY, module->sensorMinY, module->sensorMaxY, -5.0f, 5.0f);
-            float scaledZ = scaleAndClamp(sensorZ, module->sensorMinZ, module->sensorMaxZ, -5.0f, 5.0f);
+            float voltageX = module->calculateOutputVoltage(sensorX, module->sensorMinX, module->sensorMaxX);
+            float voltageY = module->calculateOutputVoltage(sensorY, module->sensorMinY, module->sensorMaxY);
+            float voltageZ = module->calculateOutputVoltage(sensorZ, module->sensorMinZ, module->sensorMaxZ);
 
             if (module->debug) {
-                cout << "scaledX = " << scaledX << endl;
-                cout << "scaledY = " << scaledY << endl;
-                cout << "scaledZ = " << scaledZ << endl;
+                cout << "voltageX = " << voltageX << endl;
+                cout << "voltageY = " << voltageY << endl;
+                cout << "voltageZ = " << voltageZ << endl;
             }
 
             std::lock_guard<std::mutex> lock(module->resultMutex);
-			module->resultQueue.push({requestId, scaledX, scaledY, scaledZ});
+			module->resultQueue.push({requestId, voltageX, voltageY, voltageZ});
 		} catch (const std::exception& e) {
             if (module->debug) {
                 cout << "error " << "" << " : " << e.what() << endl;
@@ -392,7 +412,8 @@ void fetchHttpAsync(PhyPhoxSensor* module, int requestId) {
 json_t* PhyPhoxSensor::dataToJson() {
     json_t* rootJson = json_object();
     json_object_set_new(rootJson, ipJsonKey.c_str(), json_string(ip.c_str()));
-    json_object_set_new(rootJson, modeParamJsonKey.c_str(), json_integer(modeParam));
+    json_object_set_new(rootJson, sensorModeParamJsonKey.c_str(), json_integer(sensorModeParam));
+    json_object_set_new(rootJson, voltageModeJsonKey.c_str(), json_integer(voltageMode));
 
     return rootJson;
 }
@@ -404,9 +425,14 @@ void PhyPhoxSensor::dataFromJson(json_t* rootJson)  {
         free(jsonStr);
     }
 
-    json_t* modeParamJson = json_object_get(rootJson, modeParamJsonKey.c_str());
-    if (modeParamJson) {
-        modeParam = json_integer_value(modeParamJson);
+    json_t* sensorModeParamJson = json_object_get(rootJson, sensorModeParamJsonKey.c_str());
+    if (sensorModeParamJson) {
+        sensorModeParam = json_integer_value(sensorModeParamJson);
+    }
+
+    json_t* voltageModeJson = json_object_get(rootJson, voltageModeJsonKey.c_str());
+    if (voltageModeJson) {
+        voltageMode = (VoltageMode) json_integer_value(voltageModeJson);
     }
 
     json_t* ipJson = json_object_get(rootJson, ipJsonKey.c_str());
@@ -515,7 +541,15 @@ struct PhyPhoxWidget : ModuleWidget {
                 "Light",
                 "Tilt"
             },
-            &module->modeParam
+            &module->sensorModeParam
+        ));
+
+        menu->addChild(createIndexPtrSubmenuItem("Output voltage mode",
+            {
+                "Unipolar (0V => +10V)",
+                "Bipolar (-5V => +5V)",
+            },
+            &module->voltageMode
         ));
 
         IpAddressMenuItem* ipItem = new IpAddressMenuItem;
@@ -538,7 +572,7 @@ void PhyPhoxSensor::initSensor() {
 void PhyPhoxSensor::process(const ProcessArgs& args) {
 		timeSinceLastRequest += args.sampleTime;
 		if (!isFetching && timeSinceLastRequest >= 0.01f) {
-            if (modeParam != sensor) {
+            if (sensorModeParam != sensor) {
                 initSensor();
             }
 
