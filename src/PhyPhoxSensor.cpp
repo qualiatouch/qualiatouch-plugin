@@ -49,7 +49,14 @@ struct PhyPhoxSensor : Module {
     enum Sensor {
         SENSOR_MAG = 0,
         SENSOR_ACC = 1,
-        SENSOR_LIGHT = 2
+        SENSOR_LIGHT = 2,
+        SENSOR_TILT = 3
+    };
+
+    enum Coord {
+        COORD_X,
+        COORD_Y,
+        COORD_Z
     };
 
     Sensor sensor = SENSOR_MAG;
@@ -82,6 +89,13 @@ struct PhyPhoxSensor : Module {
     const float DEFAULT_MAX_Y_LIGHT = 500.f;
     const float DEFAULT_MIN_Z_LIGHT = 000.f;
     const float DEFAULT_MAX_Z_LIGHT = 500.f;
+
+    const float DEFAULT_MIN_X_TILT = -180.f;
+    const float DEFAULT_MAX_X_TILT = 180.f;
+    const float DEFAULT_MIN_Y_TILT = -180.f;
+    const float DEFAULT_MAX_Y_TILT = 180.f;
+    const float DEFAULT_MIN_Z_TILT = -180.f;
+    const float DEFAULT_MAX_Z_TILT = 180.f;
 
     float sensorMinX = DEFAULT_MIN_X_MAG;
     float sensorMaxX = DEFAULT_MAX_X_MAG;
@@ -204,6 +218,14 @@ void PhyPhoxSensor::initLimits() {
             sensorMinZ = DEFAULT_MIN_Z_LIGHT;
             sensorMaxZ = DEFAULT_MAX_Z_LIGHT;
             break;
+        case Sensor::SENSOR_TILT:
+            sensorMinX = DEFAULT_MIN_X_TILT;
+            sensorMaxX = DEFAULT_MAX_X_TILT;
+            sensorMinY = DEFAULT_MIN_Y_TILT;
+            sensorMaxY = DEFAULT_MAX_Y_TILT;
+            sensorMinZ = DEFAULT_MIN_Z_TILT;
+            sensorMaxZ = DEFAULT_MAX_Z_TILT;
+            break;
     }
 }
 
@@ -216,30 +238,48 @@ std::string PhyPhoxSensor::getQueryParams(Sensor sensor) {
             return "accX&accY&accZ";
         case PhyPhoxSensor::SENSOR_LIGHT:
             return "illum";
+        case PhyPhoxSensor::SENSOR_TILT:
+            return "tiltFlatUD&tiltFlatLR";
         default:
             return "";
     }
 }
 
-static std::string getType(const PhyPhoxSensor::Sensor sensor, const char* coord) {
+static std::string getType(const PhyPhoxSensor::Sensor sensor, PhyPhoxSensor::Coord coord) {
     std::string type = "";
+    std::string arg = "";
     switch (sensor)
     {
         case PhyPhoxSensor::SENSOR_MAG:
-            type.append("mag").append(coord);
+            arg = "X";
+            if (coord == PhyPhoxSensor::COORD_Y) {
+                arg = "Y";
+            } else if (coord == PhyPhoxSensor::COORD_Z) {
+                arg = "Z";
+            }
+            type.append("mag").append(arg);
             return type;
         case PhyPhoxSensor::SENSOR_ACC:
-            type.append("acc").append(coord);
+            arg = "X";
+            if (coord == PhyPhoxSensor::COORD_Y) {
+                arg = "Y";
+            } else if (coord == PhyPhoxSensor::COORD_Z) {
+                arg = "Z";
+            }
+            type.append("acc").append(arg);
             return type;
         case PhyPhoxSensor::SENSOR_LIGHT:
             type.append("illum");
             return type;
+        case PhyPhoxSensor::SENSOR_TILT:
+            arg = coord == PhyPhoxSensor::COORD_X ? "UD" : "LR";
+            return type.append("tiltFlat").append(arg);
         default:
             return "";
     }
 }
 
-static float getValue(const json j, const PhyPhoxSensor::Sensor sensor, const char* coord) {
+static float getValue(const json j, const PhyPhoxSensor::Sensor sensor, PhyPhoxSensor::Coord coord) {
     if (j["buffer"].empty()) {
         cout << "empty" << endl;
         return 0.f;
@@ -311,9 +351,9 @@ void fetchHttpAsync(PhyPhoxSensor* module, int requestId) {
             if (module->debug) {
                 cout << "j = " << j << endl;
             }
-            float sensorX = getValue(j, module->sensor, "X");
-            float sensorY = getValue(j, module->sensor, "Y");
-            float sensorZ = getValue(j, module->sensor, "Z");
+            float sensorX = getValue(j, module->sensor, PhyPhoxSensor::COORD_X);
+            float sensorY = getValue(j, module->sensor, PhyPhoxSensor::COORD_Y);
+            float sensorZ = getValue(j, module->sensor, PhyPhoxSensor::COORD_Z);
 
             if (module->debug) {
                 cout << "sensorX = " << sensorX << endl;
@@ -472,7 +512,8 @@ struct PhyPhoxWidget : ModuleWidget {
             {
                 "Magnetic",
                 "Acceleration",
-                "Light"
+                "Light",
+                "Tilt"
             },
             &module->modeParam
         ));
