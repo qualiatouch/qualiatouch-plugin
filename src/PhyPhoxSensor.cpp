@@ -48,7 +48,8 @@ struct PhyPhoxSensor : Module {
 
     enum Sensor {
         SENSOR_MAG = 0,
-        SENSOR_ACC = 1
+        SENSOR_ACC = 1,
+        SENSOR_LIGHT = 2
     };
 
     Sensor sensor = SENSOR_MAG;
@@ -74,6 +75,13 @@ struct PhyPhoxSensor : Module {
     const float DEFAULT_MAX_Y_ACC = 100.f;
     const float DEFAULT_MIN_Z_ACC = -100.f;
     const float DEFAULT_MAX_Z_ACC = 100.f;
+
+    const float DEFAULT_MIN_X_LIGHT = 000.f;
+    const float DEFAULT_MAX_X_LIGHT = 500.f;
+    const float DEFAULT_MIN_Y_LIGHT = 000.f;
+    const float DEFAULT_MAX_Y_LIGHT = 500.f;
+    const float DEFAULT_MIN_Z_LIGHT = 000.f;
+    const float DEFAULT_MAX_Z_LIGHT = 500.f;
 
     float sensorMinX = DEFAULT_MIN_X_MAG;
     float sensorMaxX = DEFAULT_MAX_X_MAG;
@@ -188,6 +196,14 @@ void PhyPhoxSensor::initLimits() {
             sensorMinZ = DEFAULT_MIN_Z_ACC;
             sensorMaxZ = DEFAULT_MAX_Z_ACC;
             break;
+        case Sensor::SENSOR_LIGHT:
+            sensorMinX = DEFAULT_MIN_X_LIGHT;
+            sensorMaxX = DEFAULT_MAX_X_LIGHT;
+            sensorMinY = DEFAULT_MIN_Y_LIGHT;
+            sensorMaxY = DEFAULT_MAX_Y_LIGHT;
+            sensorMinZ = DEFAULT_MIN_Z_LIGHT;
+            sensorMaxZ = DEFAULT_MAX_Z_LIGHT;
+            break;
     }
 }
 
@@ -198,18 +214,26 @@ std::string PhyPhoxSensor::getQueryParams(Sensor sensor) {
             return "magX&magY&magZ";
         case PhyPhoxSensor::SENSOR_ACC:
             return "accX&accY&accZ";
+        case PhyPhoxSensor::SENSOR_LIGHT:
+            return "illum";
         default:
             return "";
     }
 }
 
-static std::string getType(const PhyPhoxSensor::Sensor sensor) {
+static std::string getType(const PhyPhoxSensor::Sensor sensor, const char* coord) {
+    std::string type = "";
     switch (sensor)
     {
         case PhyPhoxSensor::SENSOR_MAG:
-            return "mag";
+            type.append("mag").append(coord);
+            return type;
         case PhyPhoxSensor::SENSOR_ACC:
-            return "acc";
+            type.append("acc").append(coord);
+            return type;
+        case PhyPhoxSensor::SENSOR_LIGHT:
+            type.append("illum");
+            return type;
         default:
             return "";
     }
@@ -220,9 +244,10 @@ static float getValue(const json j, const PhyPhoxSensor::Sensor sensor, const ch
         cout << "empty" << endl;
         return 0.f;
     }
-    std::string p = getType(sensor).append(coord);
+
+    std::string p = getType(sensor, coord);
     if (false == j["buffer"].contains(p)) {
-        cout << "is not object" << endl;
+        cout << p << " is not object" << endl;
         return 0.f;
     }
 
@@ -446,7 +471,8 @@ struct PhyPhoxWidget : ModuleWidget {
         menu->addChild(createIndexPtrSubmenuItem("Sensor type",
             {
                 "Magnetic",
-                "Acceleration"
+                "Acceleration",
+                "Light"
             },
             &module->modeParam
         ));
