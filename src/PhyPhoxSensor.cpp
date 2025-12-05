@@ -50,7 +50,8 @@ struct PhyPhoxSensor : Module {
         SENSOR_MAG = 0,
         SENSOR_ACC = 1,
         SENSOR_LIGHT = 2,
-        SENSOR_TILT = 3
+        SENSOR_TILT = 3,
+        SENSOR_SOUND = 4
     };
 
     enum Coord {
@@ -104,6 +105,13 @@ struct PhyPhoxSensor : Module {
     const float DEFAULT_MAX_Y_TILT = 180.f;
     const float DEFAULT_MIN_Z_TILT = -180.f;
     const float DEFAULT_MAX_Z_TILT = 180.f;
+
+    const float DEFAULT_MIN_X_SOUND = -50.f;
+    const float DEFAULT_MAX_X_SOUND = -10.f;
+    const float DEFAULT_MIN_Y_SOUND = -50.f;
+    const float DEFAULT_MAX_Y_SOUND = -10.f;
+    const float DEFAULT_MIN_Z_SOUND = -50.f;
+    const float DEFAULT_MAX_Z_SOUND = -10.f;
 
     float sensorMinX = DEFAULT_MIN_X_MAG;
     float sensorMaxX = DEFAULT_MAX_X_MAG;
@@ -236,6 +244,14 @@ void PhyPhoxSensor::initLimits() {
             sensorMinZ = DEFAULT_MIN_Z_TILT;
             sensorMaxZ = DEFAULT_MAX_Z_TILT;
             break;
+        case Sensor::SENSOR_SOUND:
+            sensorMinX = DEFAULT_MIN_X_SOUND;
+            sensorMaxX = DEFAULT_MAX_X_SOUND;
+            sensorMinY = DEFAULT_MIN_Y_SOUND;
+            sensorMaxY = DEFAULT_MAX_Y_SOUND;
+            sensorMinZ = DEFAULT_MIN_Z_SOUND;
+            sensorMaxZ = DEFAULT_MAX_Z_SOUND;
+            break;
     }
 }
 
@@ -250,6 +266,8 @@ std::string PhyPhoxSensor::getQueryParams(Sensor sensor) {
             return "illum";
         case PhyPhoxSensor::SENSOR_TILT:
             return "tiltFlatUD&tiltFlatLR";
+        case PhyPhoxSensor::SENSOR_SOUND:
+            return "dB";
         default:
             return "";
     }
@@ -279,11 +297,12 @@ static std::string getType(const PhyPhoxSensor::Sensor sensor, PhyPhoxSensor::Co
             type.append("acc").append(arg);
             return type;
         case PhyPhoxSensor::SENSOR_LIGHT:
-            type.append("illum");
-            return type;
+            return "illum";
         case PhyPhoxSensor::SENSOR_TILT:
             arg = coord == PhyPhoxSensor::COORD_X ? "UD" : "LR";
             return type.append("tiltFlat").append(arg);
+        case PhyPhoxSensor::SENSOR_SOUND:
+            return "dB";
         default:
             return "";
     }
@@ -539,7 +558,8 @@ struct PhyPhoxWidget : ModuleWidget {
                 "Magnetic",
                 "Acceleration",
                 "Light",
-                "Tilt"
+                "Tilt",
+                "Sound intensity"
             },
             &module->sensorModeParam
         ));
