@@ -14,6 +14,12 @@ using namespace std;
 
 struct PhyPhoxWidget;
 
+struct RGB { int r, g, b; };
+
+struct SensorValues {
+    int x, y, z;
+};
+
 static size_t CurlWriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
     ((std::string*)userp)->append((char*)contents, size * nmemb);
     return size * nmemb;
@@ -51,7 +57,8 @@ struct PhyPhoxSensor : Module {
         SENSOR_ACC = 1,
         SENSOR_LIGHT = 2,
         SENSOR_TILT = 3,
-        SENSOR_SOUND = 4
+        SENSOR_SOUND = 4,
+        SENSOR_COLOR = 5
     };
 
     enum Coord {
@@ -112,6 +119,13 @@ struct PhyPhoxSensor : Module {
     const float DEFAULT_MAX_Y_SOUND = -10.f;
     const float DEFAULT_MIN_Z_SOUND = -50.f;
     const float DEFAULT_MAX_Z_SOUND = -10.f;
+
+    const float DEFAULT_MIN_X_COLOR = 0;
+    const float DEFAULT_MAX_X_COLOR = 255;
+    const float DEFAULT_MIN_Y_COLOR = 0;
+    const float DEFAULT_MAX_Y_COLOR = 255;
+    const float DEFAULT_MIN_Z_COLOR = 0;
+    const float DEFAULT_MAX_Z_COLOR = 255;
 
     float sensorMinX = DEFAULT_MIN_X_MAG;
     float sensorMaxX = DEFAULT_MAX_X_MAG;
@@ -252,6 +266,14 @@ void PhyPhoxSensor::initLimits() {
             sensorMinZ = DEFAULT_MIN_Z_SOUND;
             sensorMaxZ = DEFAULT_MAX_Z_SOUND;
             break;
+        case Sensor::SENSOR_COLOR:
+            sensorMinX = DEFAULT_MIN_X_COLOR;
+            sensorMaxX = DEFAULT_MAX_X_COLOR;
+            sensorMinY = DEFAULT_MIN_Y_COLOR;
+            sensorMaxY = DEFAULT_MAX_Y_COLOR;
+            sensorMinZ = DEFAULT_MIN_Z_COLOR;
+            sensorMaxZ = DEFAULT_MAX_Z_COLOR;
+            break;
     }
 }
 
@@ -268,6 +290,8 @@ std::string PhyPhoxSensor::getQueryParams(Sensor sensor) {
             return "tiltFlatUD&tiltFlatLR";
         case PhyPhoxSensor::SENSOR_SOUND:
             return "dB";
+        case PhyPhoxSensor::SENSOR_COLOR:
+            return "h&s&v";
         default:
             return "";
     }
@@ -303,24 +327,79 @@ static std::string getType(const PhyPhoxSensor::Sensor sensor, PhyPhoxSensor::Co
             return type.append("tiltFlat").append(arg);
         case PhyPhoxSensor::SENSOR_SOUND:
             return "dB";
+        case PhyPhoxSensor::SENSOR_COLOR:
+            arg = "h";
+            if (coord == PhyPhoxSensor::COORD_Y) {
+                arg = "s";
+            } else if (coord == PhyPhoxSensor::COORD_Z) {
+                arg = "v";
+            }
+            return arg;
         default:
             return "";
     }
 }
 
-static float getValue(const json j, const PhyPhoxSensor::Sensor sensor, PhyPhoxSensor::Coord coord) {
+static float getBufferValue(const json j, const PhyPhoxSensor::Sensor sensor, PhyPhoxSensor::Coord coord) {
     if (j["buffer"].empty()) {
-        cout << "empty" << endl;
+        // cout << "empty" << endl;
         return 0.f;
     }
 
     std::string p = getType(sensor, coord);
     if (false == j["buffer"].contains(p)) {
-        cout << p << " is not object" << endl;
+        // cout << p << " is not object" << endl;
         return 0.f;
     }
 
     return j["buffer"][p]["buffer"][0];
+}
+
+static RGB hsv_to_rgb(float h, float s, float v) {
+    float c = v * s; // chroma
+    float x = c * (1 - fabs(fmod(h / 60.0f, 2) - 1));
+    float m = v - c;
+
+    float r1, g1, b1;
+
+    if (h < 60)       { r1 = c; g1 = x; b1 = 0; }
+    else if (h < 120) { r1 = x; g1 = c; b1 = 0; }
+    else if (h < 180) { r1 = 0; g1 = c; b1 = x; }
+    else if (h < 240) { r1 = 0; g1 = x; b1 = c; }
+    else if (h < 300) { r1 = x; g1 = 0; b1 = c; }
+    else              { r1 = c; g1 = 0; b1 = x; }
+
+    RGB rgb;
+    rgb.r = static_cast<int>((r1 + m) * 255);
+    rgb.g = static_cast<int>((g1 + m) * 255);
+    rgb.b = static_cast<int>((b1 + m) * 255);
+    return rgb;
+}
+
+static SensorValues getValue(const json j, const PhyPhoxSensor::Sensor sensor) {
+    float valueX = getBufferValue(j, sensor, PhyPhoxSensor::COORD_X);
+    float valueY = getBufferValue(j, sensor, PhyPhoxSensor::COORD_Y);
+    float valueZ = getBufferValue(j, sensor, PhyPhoxSensor::COORD_Z);
+    SensorValues v;
+    switch (sensor) {
+        case PhyPhoxSensor::SENSOR_MAG:
+        case PhyPhoxSensor::SENSOR_ACC:
+        case PhyPhoxSensor::SENSOR_LIGHT:
+        case PhyPhoxSensor::SENSOR_TILT:
+        case PhyPhoxSensor::SENSOR_SOUND:
+            v.x = valueX;
+            v.y = valueY;
+            v.z = valueZ;
+            return v;
+        case PhyPhoxSensor::SENSOR_COLOR:
+            RGB rgb = hsv_to_rgb(valueX, valueY, valueZ);
+            v.x = rgb.r;
+            v.y = rgb.g;
+            v.z = rgb.b;
+            return v;
+    };
+
+    return v;
 }
 
 static float scaleAndClamp(
@@ -390,9 +469,11 @@ void fetchHttpAsync(PhyPhoxSensor* module, int requestId) {
             if (module->debug) {
                 cout << "j = " << j << endl;
             }
-            float sensorX = getValue(j, module->sensor, PhyPhoxSensor::COORD_X);
-            float sensorY = getValue(j, module->sensor, PhyPhoxSensor::COORD_Y);
-            float sensorZ = getValue(j, module->sensor, PhyPhoxSensor::COORD_Z);
+
+            SensorValues values = getValue(j, module->sensor);
+            float sensorX = values.x;
+            float sensorY = values.y;
+            float sensorZ = values.z;
 
             if (module->debug) {
                 cout << "sensorX = " << sensorX << endl;
@@ -559,7 +640,8 @@ struct PhyPhoxWidget : ModuleWidget {
                 "Acceleration",
                 "Light",
                 "Tilt",
-                "Sound intensity"
+                "Sound intensity",
+                "Color (HSV converted to RGB)"
             },
             &module->sensorModeParam
         ));
