@@ -44,10 +44,17 @@ struct DmxOut1 : Module {
     bool debug = false;
     float sampleRate = 0.1f;
 
+    // module chain
+    bool isMaster = false;
+    std::vector<DmxOut1*> moduleChain;
+    int moduleIndex = 0;
+    int moduleChainSize = 0;
+
     // module working variables
     float input0;
     float clamped0;
     float dmx0;
+    float dmxValue;
 
     // blackout button
     dsp::SchmittTrigger blackoutTrigger;
@@ -56,6 +63,7 @@ struct DmxOut1 : Module {
     // dmx params
     unsigned int dmxUniverse = 1;
     unsigned int dmxAddress = 1;
+    unsigned int dmxChannel = 1;
 
     ola::DmxBuffer buffer;
 
@@ -98,6 +106,9 @@ struct DmxOut1 : Module {
         buffer.Blackout();
     }
 
+    void refreshModuleChain();
+    void onExpanderChange(const ExpanderChangeEvent &e) override;
+
     void process(const ProcessArgs& arg) override;
 
     json_t* dataToJson() override;
@@ -105,12 +116,75 @@ struct DmxOut1 : Module {
     bool isSameModel(Module* otherModule);
 };
 
+void DmxOut1::refreshModuleChain() {
+    cout << "refreshModuleChain" << endl;
+    isMaster = false;
+    // todo improve all of that, for non-master
+    Module* leftModule = getLeftExpander().module;
+    if (leftModule == nullptr || false == isSameModel(leftModule)) {
+        isMaster = true;
+        cout << "is master : " << getId() << endl;
+    } else {
+        // not master
+        cout << "not master : " << getId() << endl;
+        moduleChain.push_back(this);
+        moduleChainSize = moduleChain.size();
+        return;
+    }
+
+    moduleChain.clear();
+    DmxOut1* m = this;
+    int i = 0;
+
+    while (m && i < 20) { // todo const limit
+        m->moduleIndex = i;
+        m->dmxChannel = dmxAddress + i;
+        cout << "       adding module " << m->moduleIndex << " channel " << m->dmxChannel << endl;
+        moduleChain.push_back(m);
+        cout << "       getting right expander" << endl;
+        Module* rightModule = m->getRightExpander().module;
+        cout << "145 rightModule " << (rightModule ? rightModule->getId() : "null") << endl;
+        if (rightModule) {
+            cout << "           rightModule : " << rightModule->model->slug;
+        } else {
+            cout << "           no rightModule" << endl;
+        }
+        if (rightModule && isSameModel(rightModule))
+        {
+            cout << " -> continue" << endl;
+            m = dynamic_cast<DmxOut1*>(rightModule);
+        } else {
+            cout << " -> end" << endl;
+            m = nullptr;
+        }
+
+        i++;
+    }
+
+    moduleChainSize = moduleChain.size();
+    cout << "   chain has " << moduleChainSize << " modules" << endl;
+}
+
+void DmxOut1::onExpanderChange (const ExpanderChangeEvent &e) {
+    cout << "onExpanderChange " << e.side << endl;
+    // todo transmit to the left (master)
+    refreshModuleChain();
+    if (e.side) { // change on the right
+    } else { // change on the left
+
+    }
+}
+
 bool DmxOut1::isSameModel(Module* otherModule) {
     return otherModule->model->plugin->name == "QualiaTouch"
         && otherModule->model->slug == "DmxOut1";
 }
 
 void DmxOut1::process(const ProcessArgs& args) {
+    // cout << "> module " << moduleIndex << " 180 " << endl;
+    if (moduleChainSize < 1) {
+        refreshModuleChain();
+    }
     timeSinceLastLoop += args.sampleTime;
     if (timeSinceLastLoop < sampleRate) {
         return;
@@ -120,25 +194,38 @@ void DmxOut1::process(const ProcessArgs& args) {
         blackoutTriggered = true;
         return;
     }
+    
+    // tmp for debug
+    // timeSinceLastLoop = 0.0f;
+    // loop++;
+    // return;
 
-    Module* leftModule = getLeftExpander().module;
-    if (leftModule && isSameModel(leftModule)) {
+    if (debug) {
+        cout << "loop " << loop << "(" << args.sampleTime << ")" << " module " << moduleIndex << " - begin" << endl;
+    }
+
+    cout << "208 > module " << moduleIndex << " master " << (isMaster ? "true" : "false") << endl;
+    Input input = inputs[DmxOut1::INPUT_CHANNEL_0];
+    
+    if (input.isConnected()) {
+        float voltage = input.getVoltage();
+        float clamped = clamp(voltage, 0.f, 10.f);
+        dmxValue = static_cast<uint8_t>(clamped * 255.f / 10.f);
+        if (debug) {
+            cout << "   module " << moduleIndex << " channel " << dmxChannel << " voltage " << voltage << " dmx " << dmxValue << endl;
+        }
+    }
+
+    if (false == isMaster) {
         // todo improve loop management
         loop++;
         timeSinceLastLoop = 0.0f;
         return;
     }
 
-    DmxOut1* m = this;
-    int channel = m->dmxAddress;
-
-    if (debug) {
-        cout << "loop " << loop << "(" << args.sampleTime << ") - begin" << endl;
-    }
-    int i = 0;
-
-    while (m && i < 20) {
-        // todo should trigger all blackouts
+    for (int i = 0; i < moduleChainSize; i++) {
+        DmxOut1* m = moduleChain.at(i);
+        cout << "  checking module " << m->moduleIndex << endl;
         if (m->blackoutTriggered) {
             if (debug) {
                 cout << "blackout triggered on module " << i << " - sending blackout" << endl;
@@ -147,35 +234,14 @@ void DmxOut1::process(const ProcessArgs& args) {
             break;
         }
 
-        Input input = m->getInput(DmxOut1::INPUT_CHANNEL_0);
-        if (input.isConnected()) {
-            float voltage = input.getVoltage();
-            float clamped = clamp(voltage, 0.f, 10.f);
-            int dmx = static_cast<uint8_t>(clamped * 255.f / 10.f);
-            if (debug) {
-                cout << "   " << i << ": module " << m->id << "channel " << channel << " voltage " << voltage << " dmx " << dmx << endl;
-            }
-
-            buffer.SetChannel(channel, dmx);
-        } else {
-            if (debug) {
-                cout << "   " << i << ": module " << m->id << " input not connected" << endl;
-            }
+        if (debug) {
+            cout << "   setting channel " << m->dmxChannel << " to DMX value " << m->dmxValue << endl;
         }
-
-        Module* rightModule = m->getRightExpander().module;
-        if (rightModule && isSameModel(rightModule))
-        {
-            m = dynamic_cast<DmxOut1*>(rightModule);
-            channel++;
-        } else {
-            m = nullptr;
-        }
-        i++;
+        buffer.SetChannel(m->dmxChannel, m->dmxValue);
     }
 
     if (debug) {
-        cout << "   got " << i << " modules - sending DMX : " << buffer.ToString();
+        cout << "sending DMX : " << buffer.ToString();
     }
 
     if (!ola_client->SendDmx(dmxUniverse, buffer)) {
