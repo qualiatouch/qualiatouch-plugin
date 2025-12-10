@@ -42,6 +42,7 @@ struct DmxOut1 : Module {
 	float timeSinceLastLoop = 0.f;
     int loop = 0;
     bool debug = false;
+    bool debugChain = false;
     float sampleRate = 0.1f;
 
     // module chain
@@ -118,33 +119,44 @@ struct DmxOut1 : Module {
 };
 
 void DmxOut1::refreshModuleChain() {
-    cout << "module " << getId() << " in refreshModuleChain()" << endl;
+    if (debugChain) {
+        cout << "module " << getId() << " in refreshModuleChain()" << endl;
+    }
     recalculateChain = false;
     isMaster = false;
     moduleChain.clear();
 
-    // todo improve all of that, for non-master
     Module* leftModule = getLeftExpander().module;
     if (leftModule == nullptr || false == isSameModel(leftModule)) {
         isMaster = true;
-        cout << "module " << getId() << " is master" << endl;
+        if (debugChain) {
+            cout << "module " << getId() << " is master" << endl;
+        }
     } else {
         // not master
         moduleChain.push_back(this);
         moduleChainSize = moduleChain.size();
-        cout << "module " << getId() << " is NOT master" << endl;
+        if (debugChain) {
+            cout << "module " << getId() << " is NOT master" << endl;
+        }
         Module* rightModule = getRightExpander().module;
         if (rightModule && rightModule->getId() == leftModule->getId()) {
-            cout << "   module " << getId() << " : some swap occured (module " << leftModule->getId() << " on both sides) - stopping the loop" << endl;
+            // if (debugChain) {
+                cerr << "   module " << getId() << " : some swap occured (module " << leftModule->getId() << " on both sides) - stopping the loop" << endl;
+            // }
             return;
         }
-        cout << "   module " << getId() << " : calling refreshModuleChain() to the left (" << leftModule->getId() << ")" << endl;
+        if (debugChain) {
+            cout << "   module " << getId() << " : calling refreshModuleChain() to the left (" << leftModule->getId() << ")" << endl;
+        }
         DmxOut1* m = dynamic_cast<DmxOut1*>(leftModule);
         m->refreshModuleChain();
         return;
     }
 
-    cout << "module " << getId() << " reconstructing chain" << endl;
+    if (debugChain) {
+        cout << "module " << getId() << " reconstructing chain" << endl;
+    }
 
     DmxOut1* m = this;
     int i = 0;
@@ -152,22 +164,37 @@ void DmxOut1::refreshModuleChain() {
     while (m && i < 20) { // todo const limit
         m->moduleIndex = i;
         m->dmxChannel = dmxAddress + i;
-        cout << "       adding module " << m->moduleIndex << " channel " << m->dmxChannel << endl;
+        if (debugChain) {
+            cout << "       adding module " << m->moduleIndex << " channel " << m->dmxChannel << endl;
+        }
         moduleChain.push_back(m);
-        cout << "       getting right expander" << endl;
+        if (debugChain) {
+            cout << "       getting right expander" << endl;
+        }
         Module* rightModule = m->getRightExpander().module;
-        cout << "   145 rightModule " << (rightModule ? rightModule->getId() : 0) << endl;
+        if (debugChain) {
+            cout << "   rightModule " << (rightModule ? rightModule->getId() : 0) << endl;
+        }
+
         if (rightModule) {
-            cout << "           rightModule : " << rightModule->model->slug;
+            if (debugChain) {
+                cout << "           rightModule : " << rightModule->model->slug;
+            }
         } else {
-            cout << "           no rightModule";
+            if (debugChain) {
+                cout << "           no rightModule";
+            }
         }
         if (rightModule && isSameModel(rightModule))
         {
-            cout << " -> continue" << endl;
+            if (debugChain) {
+                cout << " -> continue" << endl;
+            }
             m = dynamic_cast<DmxOut1*>(rightModule);
         } else {
-            cout << " -> end" << endl;
+            if (debugChain) {
+                cout << " -> end" << endl;
+            }
             m = nullptr;
         }
 
@@ -175,7 +202,10 @@ void DmxOut1::refreshModuleChain() {
     }
 
     moduleChainSize = moduleChain.size();
-    cout << "   module " << getId() << " chain has " << moduleChainSize << " modules" << endl;
+
+    if (debugChain) {
+        cout << "   module " << getId() << " chain has " << moduleChainSize << " modules" << endl;
+    }
 }
 
 /**
@@ -192,15 +222,22 @@ void DmxOut1::refreshModuleChain() {
 void DmxOut1::onExpanderChange (const ExpanderChangeEvent &e) {
     Module* rightModule = getRightExpander().module;
     Module* leftModule = getLeftExpander().module;
-    cout << "module " << getId() << " onExpanderChange() side " << e.side
-        << " left:" << (leftModule ? leftModule->getId() : 0)
-        << " right: " << (rightModule ? rightModule->getId() : 0) << endl;
+
+    if (debugChain) {
+        cout << "module " << getId() << " onExpanderChange() side " << e.side
+            << " left:" << (leftModule ? leftModule->getId() : 0)
+            << " right: " << (rightModule ? rightModule->getId() : 0) << endl;
+    }
 
     if (e.side == 1) {
-        cout << "   change was to the right - resetting chain" << endl;
+        if (debugChain) {
+            cout << "   change was to the right - resetting chain" << endl;
+        }
         recalculateChain = true;
     } else {
-        cout << "   change was to the left - resetting chain" << endl;
+        if (debugChain) {
+            cout << "   change was to the left - resetting chain" << endl;
+        }
         recalculateChain = true;
     }
 }
@@ -211,9 +248,10 @@ bool DmxOut1::isSameModel(Module* otherModule) {
 }
 
 void DmxOut1::process(const ProcessArgs& args) {
-    // cout << "> module " << moduleIndex << " 180 " << endl;
     if (moduleChainSize < 1 || recalculateChain) {
-        cout << "module " << getId() << " : we need to recalculate module chain (chainSize " << moduleChainSize << "; recalculate " << (recalculateChain ? "t" : "f") << ") calling refreshModuleChain()" << endl;
+        if (debugChain) {
+            cout << "module " << getId() << " : we need to recalculate module chain (chainSize " << moduleChainSize << "; recalculate " << (recalculateChain ? "t" : "f") << ") calling refreshModuleChain()" << endl;
+        }
         refreshModuleChain();
     }
     timeSinceLastLoop += args.sampleTime;
@@ -225,17 +263,11 @@ void DmxOut1::process(const ProcessArgs& args) {
         blackoutTriggered = true;
         return;
     }
-    
-    // tmp for debug
-    // timeSinceLastLoop = 0.0f;
-    // loop++;
-    // return;
 
     if (debug) {
         cout << "loop " << loop << "(" << args.sampleTime << ")" << " module " << moduleIndex << " - begin" << endl;
     }
 
-    //cout << "208 > module " << moduleIndex << " master " << (isMaster ? "true" : "false") << endl;
     Input input = inputs[DmxOut1::INPUT_CHANNEL_0];
     
     if (input.isConnected()) {
@@ -256,7 +288,6 @@ void DmxOut1::process(const ProcessArgs& args) {
 
     for (int i = 0; i < moduleChainSize; i++) {
         DmxOut1* m = moduleChain.at(i);
-        cout << "  checking module " << m->moduleIndex << endl;
         if (m->blackoutTriggered) {
             if (debug) {
                 cout << "BLACKOUT triggered on module " << i << " - sending blackout" << endl;
@@ -355,7 +386,9 @@ struct DmxOut1Widget : ModuleWidget {
     DmxOut1* module;
 
     DmxOut1Widget(DmxOut1* moduleParam) {
-        cout << "[DMX] construct DmxOut1Widget" << endl;
+        if (moduleParam->debug) {
+            cout << "[DMX] construct DmxOut1Widget" << endl;
+        }
 
         module = moduleParam;
         setModule(module);
