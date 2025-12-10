@@ -42,20 +42,30 @@ struct DmxOut1 : Module {
 	float timeSinceLastLoop = 0.f;
     int loop = 0;
     bool debug = false;
+    bool debugChain = false;
     float sampleRate = 0.1f;
+
+    // module chain
+    bool isMaster = false;
+    std::vector<DmxOut1*> moduleChain;
+    int moduleIndex = 0;
+    int moduleChainSize = 0;
+    bool recalculateChain = true;
 
     // module working variables
     float input0;
     float clamped0;
     float dmx0;
+    float dmxValue;
 
     // blackout button
     dsp::SchmittTrigger blackoutTrigger;
     bool blackoutTriggered = false;
 
-    // dmx params
+    // DMX
     unsigned int dmxUniverse = 1;
     unsigned int dmxAddress = 1;
+    unsigned int dmxChannel = 1;
 
     ola::DmxBuffer buffer;
 
@@ -98,6 +108,9 @@ struct DmxOut1 : Module {
         buffer.Blackout();
     }
 
+    void refreshModuleChain();
+    void onExpanderChange(const ExpanderChangeEvent &e) override;
+
     void process(const ProcessArgs& arg) override;
 
     json_t* dataToJson() override;
@@ -105,12 +118,142 @@ struct DmxOut1 : Module {
     bool isSameModel(Module* otherModule);
 };
 
+void DmxOut1::refreshModuleChain() {
+    if (debugChain) {
+        cout << "module " << getId() << " in refreshModuleChain()" << endl;
+    }
+    recalculateChain = false;
+    isMaster = false;
+    moduleChain.clear();
+
+    Module* leftModule = getLeftExpander().module;
+    if (leftModule == nullptr || false == isSameModel(leftModule)) {
+        isMaster = true;
+        if (debugChain) {
+            cout << "module " << getId() << " is master" << endl;
+        }
+    } else {
+        // not master
+        moduleChain.push_back(this);
+        moduleChainSize = moduleChain.size();
+        if (debugChain) {
+            cout << "module " << getId() << " is NOT master" << endl;
+        }
+        Module* rightModule = getRightExpander().module;
+        if (rightModule && rightModule->getId() == leftModule->getId()) {
+            // if (debugChain) {
+                cerr << "   module " << getId() << " : some swap occured (module " << leftModule->getId() << " on both sides) - stopping the loop" << endl;
+            // }
+            return;
+        }
+        if (debugChain) {
+            cout << "   module " << getId() << " : calling refreshModuleChain() to the left (" << leftModule->getId() << ")" << endl;
+        }
+        DmxOut1* m = dynamic_cast<DmxOut1*>(leftModule);
+        m->refreshModuleChain();
+        return;
+    }
+
+    if (debugChain) {
+        cout << "module " << getId() << " reconstructing chain" << endl;
+    }
+
+    DmxOut1* m = this;
+    int i = 0;
+
+    while (m && i < 20) { // todo const limit
+        m->moduleIndex = i;
+        m->dmxChannel = dmxAddress + i;
+        if (debugChain) {
+            cout << "       adding module " << m->moduleIndex << " channel " << m->dmxChannel << endl;
+        }
+        moduleChain.push_back(m);
+        if (debugChain) {
+            cout << "       getting right expander" << endl;
+        }
+        Module* rightModule = m->getRightExpander().module;
+        if (debugChain) {
+            cout << "   rightModule " << (rightModule ? rightModule->getId() : 0) << endl;
+        }
+
+        if (rightModule) {
+            if (debugChain) {
+                cout << "           rightModule : " << rightModule->model->slug;
+            }
+        } else {
+            if (debugChain) {
+                cout << "           no rightModule";
+            }
+        }
+        if (rightModule && isSameModel(rightModule))
+        {
+            if (debugChain) {
+                cout << " -> continue" << endl;
+            }
+            m = dynamic_cast<DmxOut1*>(rightModule);
+        } else {
+            if (debugChain) {
+                cout << " -> end" << endl;
+            }
+            m = nullptr;
+        }
+
+        i++;
+    }
+
+    moduleChainSize = moduleChain.size();
+
+    if (debugChain) {
+        cout << "   module " << getId() << " chain has " << moduleChainSize << " modules" << endl;
+    }
+}
+
+/**
+ * (empirical) notes on onExpanderChange
+ * when moving one module B right between two others A and C
+ * ABC
+ * 1. A onExpanderChange side 1 has B to the right
+ * 2. B onExpanderChange side 0 has A to the left and nothing to the right
+ * 3. B onExpanderChange side 1 has A to the left and C to the right
+ * 4. C onExpanderChange side 0 has B to the left and nothing to the right
+ *
+ * il vaut mieux ne regarder le module d'un côté que si on vient de l'expanderchange de ce côté
+ */
+void DmxOut1::onExpanderChange (const ExpanderChangeEvent &e) {
+    Module* rightModule = getRightExpander().module;
+    Module* leftModule = getLeftExpander().module;
+
+    if (debugChain) {
+        cout << "module " << getId() << " onExpanderChange() side " << e.side
+            << " left:" << (leftModule ? leftModule->getId() : 0)
+            << " right: " << (rightModule ? rightModule->getId() : 0) << endl;
+    }
+
+    if (e.side == 1) {
+        if (debugChain) {
+            cout << "   change was to the right - resetting chain" << endl;
+        }
+        recalculateChain = true;
+    } else {
+        if (debugChain) {
+            cout << "   change was to the left - resetting chain" << endl;
+        }
+        recalculateChain = true;
+    }
+}
+
 bool DmxOut1::isSameModel(Module* otherModule) {
     return otherModule->model->plugin->name == "QualiaTouch"
         && otherModule->model->slug == "DmxOut1";
 }
 
 void DmxOut1::process(const ProcessArgs& args) {
+    if (moduleChainSize < 1 || recalculateChain) {
+        if (debugChain) {
+            cout << "module " << getId() << " : we need to recalculate module chain (chainSize " << moduleChainSize << "; recalculate " << (recalculateChain ? "t" : "f") << ") calling refreshModuleChain()" << endl;
+        }
+        refreshModuleChain();
+    }
     timeSinceLastLoop += args.sampleTime;
     if (timeSinceLastLoop < sampleRate) {
         return;
@@ -121,61 +264,46 @@ void DmxOut1::process(const ProcessArgs& args) {
         return;
     }
 
-    Module* leftModule = getLeftExpander().module;
-    if (leftModule && isSameModel(leftModule)) {
+    if (debug) {
+        cout << "loop " << loop << "(" << args.sampleTime << ")" << " module " << moduleIndex << " - begin" << endl;
+    }
+
+    Input input = inputs[DmxOut1::INPUT_CHANNEL_0];
+    
+    if (input.isConnected()) {
+        float voltage = input.getVoltage();
+        float clamped = clamp(voltage, 0.f, 10.f);
+        dmxValue = static_cast<uint8_t>(clamped * 255.f / 10.f);
+        if (debug) {
+            cout << "   module " << moduleIndex << " channel " << dmxChannel << " voltage " << voltage << " dmx " << dmxValue << endl;
+        }
+    }
+
+    if (false == isMaster) {
         // todo improve loop management
         loop++;
         timeSinceLastLoop = 0.0f;
         return;
     }
 
-    DmxOut1* m = this;
-    int channel = m->dmxAddress;
-
-    if (debug) {
-        cout << "loop " << loop << "(" << args.sampleTime << ") - begin" << endl;
-    }
-    int i = 0;
-
-    while (m && i < 20) {
-        // todo should trigger all blackouts
+    for (int i = 0; i < moduleChainSize; i++) {
+        DmxOut1* m = moduleChain.at(i);
         if (m->blackoutTriggered) {
             if (debug) {
-                cout << "blackout triggered on module " << i << " - sending blackout" << endl;
+                cout << "BLACKOUT triggered on module " << i << " - sending blackout" << endl;
             }
             buffer.Blackout();
             break;
         }
 
-        Input input = m->getInput(DmxOut1::INPUT_CHANNEL_0);
-        if (input.isConnected()) {
-            float voltage = input.getVoltage();
-            float clamped = clamp(voltage, 0.f, 10.f);
-            int dmx = static_cast<uint8_t>(clamped * 255.f / 10.f);
-            if (debug) {
-                cout << "   " << i << ": module " << m->id << "channel " << channel << " voltage " << voltage << " dmx " << dmx << endl;
-            }
-
-            buffer.SetChannel(channel, dmx);
-        } else {
-            if (debug) {
-                cout << "   " << i << ": module " << m->id << " input not connected" << endl;
-            }
+        if (debug) {
+            cout << "   setting channel " << m->dmxChannel << " to DMX value " << m->dmxValue << endl;
         }
-
-        Module* rightModule = m->getRightExpander().module;
-        if (rightModule && isSameModel(rightModule))
-        {
-            m = dynamic_cast<DmxOut1*>(rightModule);
-            channel++;
-        } else {
-            m = nullptr;
-        }
-        i++;
+        buffer.SetChannel(m->dmxChannel, m->dmxValue);
     }
 
     if (debug) {
-        cout << "   got " << i << " modules - sending DMX : " << buffer.ToString();
+        cout << "sending DMX : " << buffer.ToString();
     }
 
     if (!ola_client->SendDmx(dmxUniverse, buffer)) {
@@ -226,6 +354,7 @@ struct DmxAddressField : ui::TextField {
             int dmxAddress = std::stoi(text);
             if (module) {
                 module->dmxAddress = dmxAddress;
+                module->recalculateChain = true;
             }
             ui::MenuOverlay* overlay = getAncestorOfType<ui::MenuOverlay>();
             if (overlay) {
@@ -257,7 +386,9 @@ struct DmxOut1Widget : ModuleWidget {
     DmxOut1* module;
 
     DmxOut1Widget(DmxOut1* moduleParam) {
-        cout << "[DMX] construct DmxOut1Widget" << endl;
+        if (moduleParam->debug) {
+            cout << "[DMX] construct DmxOut1Widget" << endl;
+        }
 
         module = moduleParam;
         setModule(module);
@@ -271,7 +402,6 @@ struct DmxOut1Widget : ModuleWidget {
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
     }
 
-
     void appendContextMenu(Menu* menu) override {
         menu->addChild(new MenuSeparator);
         menu->addChild(createMenuLabel("DMX settings"));
@@ -284,6 +414,14 @@ struct DmxOut1Widget : ModuleWidget {
 
         menu->addChild(rack::createBoolPtrMenuItem("Blackout triggered", "", &module->blackoutTriggered));
         menu->addChild(rack::createBoolPtrMenuItem("Debug Mode", "", &module->debug));
+
+        // debug info
+        menu->addChild(new MenuSeparator);
+        menu->addChild(createMenuLabel("Debug info"));
+        menu->addChild(createMenuLabel("Id " + std::to_string(module->getId())));
+        menu->addChild(createMenuLabel("Master " + std::to_string(module->isMaster)));
+        menu->addChild(createMenuLabel("Chain size " + std::to_string(module->moduleChainSize)));
+        menu->addChild(createMenuLabel("Channel " + std::to_string(module->dmxChannel)));
     }
 };
 
