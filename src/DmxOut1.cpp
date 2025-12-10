@@ -25,6 +25,7 @@ struct DmxOut1 : Module {
 
     enum InputId {
         INPUT_CHANNEL_0,
+        INPUT_BLACKOUT,
         INPUTS_LEN
     };
 
@@ -59,7 +60,8 @@ struct DmxOut1 : Module {
     float dmxValue;
 
     // blackout button
-    dsp::SchmittTrigger blackoutTrigger;
+    dsp::SchmittTrigger blackoutButtonTrigger;
+    dsp::SchmittTrigger blackoutInputTrigger;
     bool blackoutTriggered = false;
 
     // DMX
@@ -81,6 +83,7 @@ struct DmxOut1 : Module {
 
         configButton(BLACKOUT_BUTTON, "Blackout");
         configInput(INPUT_CHANNEL_0, "channel 0");
+        configInput(INPUT_BLACKOUT, "Blackout (Trigger or gate to blackout)");
 
         // # init OLA / DMX
 
@@ -259,7 +262,8 @@ void DmxOut1::process(const ProcessArgs& args) {
         return;
     }
 
-    if (blackoutTrigger.process(params[BLACKOUT_BUTTON].getValue())) {
+    if (blackoutButtonTrigger.process(params[BLACKOUT_BUTTON].getValue())
+        || blackoutInputTrigger.process(inputs[INPUT_BLACKOUT].getVoltage())) {
         blackoutTriggered = true;
         return;
     }
@@ -397,6 +401,7 @@ struct DmxOut1Widget : ModuleWidget {
 
         addInput(createInputCentered<PJ301MPort>(mm2px(Vec(7.625, 42.5)), module, DmxOut1::INPUT_CHANNEL_0));
         addParam(createParamCentered<CKD6>(mm2px(Vec(7.625, 90.0)), module, DmxOut1::BLACKOUT_BUTTON));
+        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(7.625, 102.5)), module, DmxOut1::INPUT_BLACKOUT));
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
