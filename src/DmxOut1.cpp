@@ -390,9 +390,7 @@ struct DmxOut1Widget : ModuleWidget {
     DmxOut1* module;
 
     DmxOut1Widget(DmxOut1* moduleParam) {
-        if (moduleParam->debug) {
-            cout << "[DMX] construct DmxOut1Widget" << endl;
-        }
+        //cout << "[DMX] construct DmxOut1Widget" << endl;
 
         module = moduleParam;
         setModule(module);
