@@ -35,7 +35,10 @@ struct PhyPhoxSensor : Module {
 	};
 
 	enum LightId {
-		LIGHTS_LEN
+        STATUS_LIGHT_RED,
+        STATUS_LIGHT_GREEN,
+        STATUS_LIGHT_BLUE,
+        LIGHTS_LEN
 	};
 
 	enum OutputIds {
@@ -52,6 +55,13 @@ struct PhyPhoxSensor : Module {
     std::string queryParams = "";
     std::string url;
 
+    enum Status {
+        INIT,
+        MEASURING,
+        NOT_MEASURING,
+        ERROR
+    };
+
     enum Sensor {
         SENSOR_MAG = 0,
         SENSOR_ACC = 1,
@@ -67,6 +77,7 @@ struct PhyPhoxSensor : Module {
         COORD_Z
     };
 
+    Status status = INIT;
     Sensor sensor = SENSOR_MAG;
     int sensorModeParam = SENSOR_MAG;
 
@@ -144,6 +155,8 @@ struct PhyPhoxSensor : Module {
 	
 	struct OrderedResult {
 		int requestId;
+        bool isMeasuring;
+        bool hasError;
 		float resultX;
 		float resultY;
 		float resultZ;
@@ -166,6 +179,10 @@ struct PhyPhoxSensor : Module {
         configOutput(OUT_X, "X");
         configOutput(OUT_Y, "Y");
         configOutput(OUT_Z, "Z");
+
+        configLight(STATUS_LIGHT_RED, "Status");
+        configLight(STATUS_LIGHT_GREEN, "");
+        configLight(STATUS_LIGHT_BLUE, "");
 
         curl_global_init(CURL_GLOBAL_DEFAULT);
 
@@ -194,6 +211,9 @@ struct PhyPhoxSensor : Module {
 
     json_t* dataToJson() override;
     void dataFromJson(json_t* rootJson) override;
+    Status getStatus(bool hasError, bool isMeasuring);
+    void updateLedColor();
+    void setStatusLedColor(float red, float green, float blue);
 };
 
 void PhyPhoxSensor::setWidget(PhyPhoxWidget* widgetParam) {
@@ -342,17 +362,23 @@ static std::string getType(const PhyPhoxSensor::Sensor sensor, PhyPhoxSensor::Co
 
 static float getBufferValue(const json j, const PhyPhoxSensor::Sensor sensor, PhyPhoxSensor::Coord coord) {
     if (j["buffer"].empty()) {
-        // cout << "empty" << endl;
         return 0.f;
     }
 
     std::string p = getType(sensor, coord);
     if (false == j["buffer"].contains(p)) {
-        // cout << p << " is not object" << endl;
         return 0.f;
     }
 
     return j["buffer"][p]["buffer"][0];
+}
+
+static bool getMeasuringValue(const json j) {
+    if (j["status"].empty()) {
+        return false;
+    }
+
+    return j["status"]["measuring"];
 }
 
 static RGB hsv_to_rgb(float h, float s, float v) {
@@ -427,6 +453,45 @@ float PhyPhoxSensor::calculateOutputVoltage(float rawValue, float rawMin, float 
     }
 }
 
+PhyPhoxSensor::Status PhyPhoxSensor::getStatus(bool hasError, bool isMeasuring) {
+    if (hasError) {
+        return ERROR;
+    }
+
+    if (isMeasuring) {
+        return MEASURING;
+    }
+
+    return NOT_MEASURING;
+}
+
+void PhyPhoxSensor::setStatusLedColor(float red, float green, float blue) {
+    lights[STATUS_LIGHT_RED].setBrightness(red);
+    lights[STATUS_LIGHT_GREEN].setBrightness(green);
+    lights[STATUS_LIGHT_BLUE].setBrightness(blue);
+}
+
+void PhyPhoxSensor::updateLedColor() {
+    switch (status)
+    {
+        case INIT:
+            setStatusLedColor(0.f, 0.f, 1.f);
+            break;
+        case MEASURING:
+            setStatusLedColor(0.f, 1.f, 0.f);
+            break;
+        case NOT_MEASURING:
+            setStatusLedColor(1.f, 0.5f, 0.f);
+            break;
+        case ERROR:
+            setStatusLedColor(1.f, 0.f, 0.f);
+            break;
+        default:
+            setStatusLedColor(0.f, 0.f, 0.f);
+            break;
+    }
+}
+
 // TODO will not work correctly with more than one module
 
 void fetchHttpAsync(PhyPhoxSensor* module, int requestId) {
@@ -456,6 +521,12 @@ void fetchHttpAsync(PhyPhoxSensor* module, int requestId) {
 
     CURLcode res = curl_easy_perform(curl);
 
+    bool isMeasuring = false;
+    bool hasError = false;
+    float voltageX = 0.f;
+    float voltageY = 0.f;
+    float voltageZ = 0.f;
+
     if (module->debug) {
 	    cout << "res = " << res << endl;
     }
@@ -470,40 +541,45 @@ void fetchHttpAsync(PhyPhoxSensor* module, int requestId) {
                 cout << "j = " << j << endl;
             }
 
-            SensorValues values = getValue(j, module->sensor);
-            float sensorX = values.x;
-            float sensorY = values.y;
-            float sensorZ = values.z;
+            isMeasuring = getMeasuringValue(j);
+            if (isMeasuring) {
+                SensorValues values = getValue(j, module->sensor);
+                float sensorX = values.x;
+                float sensorY = values.y;
+                float sensorZ = values.z;
 
-            if (module->debug) {
-                cout << "sensorX = " << sensorX << endl;
-                cout << "sensorY = " << sensorY << endl;
-                cout << "sensorZ = " << sensorZ << endl;
+                if (module->debug) {
+                    cout << "sensorX = " << sensorX << endl;
+                    cout << "sensorY = " << sensorY << endl;
+                    cout << "sensorZ = " << sensorZ << endl;
+                }
+
+                voltageX = module->calculateOutputVoltage(sensorX, module->sensorMinX, module->sensorMaxX);
+                voltageY = module->calculateOutputVoltage(sensorY, module->sensorMinY, module->sensorMaxY);
+                voltageZ = module->calculateOutputVoltage(sensorZ, module->sensorMinZ, module->sensorMaxZ);
+
+                if (module->debug) {
+                    cout << "voltageX = " << voltageX << endl;
+                    cout << "voltageY = " << voltageY << endl;
+                    cout << "voltageZ = " << voltageZ << endl;
+                }
             }
-
-            float voltageX = module->calculateOutputVoltage(sensorX, module->sensorMinX, module->sensorMaxX);
-            float voltageY = module->calculateOutputVoltage(sensorY, module->sensorMinY, module->sensorMaxY);
-            float voltageZ = module->calculateOutputVoltage(sensorZ, module->sensorMinZ, module->sensorMaxZ);
-
-            if (module->debug) {
-                cout << "voltageX = " << voltageX << endl;
-                cout << "voltageY = " << voltageY << endl;
-                cout << "voltageZ = " << voltageZ << endl;
-            }
-
-            std::lock_guard<std::mutex> lock(module->resultMutex);
-			module->resultQueue.push({requestId, voltageX, voltageY, voltageZ});
 		} catch (const std::exception& e) {
+            hasError = true;
             if (module->debug) {
                 cout << "error " << "" << " : " << e.what() << endl;
             }
 			module->dataReady = true;
 		}
     } else {
+        hasError = true;
         if (module->debug) {
             cout << "error with curl : " << res << " - " << curl_easy_strerror(res) << endl;
         }
     }
+
+    std::lock_guard<std::mutex> lock(module->resultMutex);
+    module->resultQueue.push({requestId, isMeasuring, hasError, voltageX, voltageY, voltageZ});
 
     curl_easy_cleanup(curl);
     module->isFetching = false;
@@ -618,6 +694,8 @@ struct PhyPhoxWidget : ModuleWidget {
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
+        addChild(createLightCentered<SmallLight<RedGreenBlueLight>>(mm2px(Vec(7.625, 42.5)), module, PhyPhoxSensor::STATUS_LIGHT_RED));
+
 		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 52.5)), module, PhyPhoxSensor::OUT_X));
 		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 72.5)), module, PhyPhoxSensor::OUT_Y));
 		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 92.5)), module, PhyPhoxSensor::OUT_Z));
@@ -698,6 +776,9 @@ void PhyPhoxSensor::process(const ProcessArgs& args) {
 				outZ = result.resultZ;
 
 				nextExpectedId++;
+
+                status = getStatus(result.hasError, result.isMeasuring);
+                updateLedColor();
 			}
 		}
 		
