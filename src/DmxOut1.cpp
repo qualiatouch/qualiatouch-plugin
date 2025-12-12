@@ -30,6 +30,7 @@ struct DmxOut1 : Module {
     };
 
     enum LightIn {
+        BLACKOUT_LIGHT,
         LIGHTS_LEN
     };
 
@@ -84,6 +85,7 @@ struct DmxOut1 : Module {
         configButton(BLACKOUT_BUTTON, "Blackout");
         configInput(INPUT_CHANNEL_0, "channel 0");
         configInput(INPUT_BLACKOUT, "Blackout (Trigger or gate to blackout)");
+        configLight(BLACKOUT_LIGHT, "Blackout triggered - deactivate it in the menu");
 
         // # init OLA / DMX
 
@@ -257,14 +259,17 @@ void DmxOut1::process(const ProcessArgs& args) {
         }
         refreshModuleChain();
     }
-    timeSinceLastLoop += args.sampleTime;
-    if (timeSinceLastLoop < sampleRate) {
-        return;
-    }
+
+    lights[BLACKOUT_LIGHT].setBrightness(blackoutTriggered ? 1.f : 0.f);
 
     if (blackoutButtonTrigger.process(params[BLACKOUT_BUTTON].getValue())
         || blackoutInputTrigger.process(inputs[INPUT_BLACKOUT].getVoltage())) {
         blackoutTriggered = true;
+        return;
+    }
+
+    timeSinceLastLoop += args.sampleTime;
+    if (timeSinceLastLoop < sampleRate) {
         return;
     }
 
@@ -399,7 +404,8 @@ struct DmxOut1Widget : ModuleWidget {
 
         addInput(createInputCentered<PJ301MPort>(mm2px(Vec(7.625, 42.5)), module, DmxOut1::INPUT_CHANNEL_0));
         addParam(createParamCentered<CKD6>(mm2px(Vec(7.625, 90.0)), module, DmxOut1::BLACKOUT_BUTTON));
-        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(7.625, 102.5)), module, DmxOut1::INPUT_BLACKOUT));
+        addInput(createInputCentered<PJ301MPort>(mm2px(Vec(7.625, 107.5)), module, DmxOut1::INPUT_BLACKOUT));
+        addChild(createLightCentered<SmallLight<RedLight>>(mm2px(Vec(7.625, 100.0)), module, DmxOut1::BLACKOUT_LIGHT));
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
@@ -416,7 +422,6 @@ struct DmxOut1Widget : ModuleWidget {
         menu->addChild(addressItem);
 
         menu->addChild(rack::createBoolPtrMenuItem("Blackout triggered", "", &module->blackoutTriggered));
-        menu->addChild(rack::createBoolPtrMenuItem("Debug Mode", "", &module->debug));
 
         // debug info
         menu->addChild(new MenuSeparator);
@@ -425,6 +430,8 @@ struct DmxOut1Widget : ModuleWidget {
         menu->addChild(createMenuLabel("Master " + std::to_string(module->isMaster)));
         menu->addChild(createMenuLabel("Chain size " + std::to_string(module->moduleChainSize)));
         menu->addChild(createMenuLabel("Channel " + std::to_string(module->dmxChannel)));
+        menu->addChild(rack::createBoolPtrMenuItem("Debug", "", &module->debug));
+        menu->addChild(rack::createBoolPtrMenuItem("Debug Chain", "", &module->debugChain));
     }
 };
 
