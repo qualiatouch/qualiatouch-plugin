@@ -38,6 +38,7 @@ struct DmxOut1 : Module {
         OUTPUTS_LEN
     };
 
+    std::string useOwnDmxAddressJsonKey = "useOwnDmxAddress";
     std::string dmxAddressJsonKey = "dmxAddress";
 
     // module params
@@ -67,6 +68,7 @@ struct DmxOut1 : Module {
 
     // DMX
     unsigned int dmxUniverse = 1;
+    bool useOwnDmxAddress = false;
     unsigned int dmxAddress = 1;
     unsigned int dmxChannel = 1;
 
@@ -115,6 +117,7 @@ struct DmxOut1 : Module {
 
     void refreshModuleChain();
     void onExpanderChange(const ExpanderChangeEvent &e) override;
+    void toggleUseOwnDmxAddress();
 
     void process(const ProcessArgs& arg) override;
 
@@ -165,10 +168,16 @@ void DmxOut1::refreshModuleChain() {
 
     DmxOut1* m = this;
     int i = 0;
+    int address = dmxAddress;
+    int relativeCounter = 0;
 
     while (m && i < 20) { // todo const limit
         m->moduleIndex = i;
-        m->dmxChannel = dmxAddress + i;
+        if (m->useOwnDmxAddress) {
+            address = m->dmxAddress;
+            relativeCounter = 0;
+        }
+        m->dmxChannel = address + relativeCounter;
         if (debugChain) {
             cout << "       adding module " << m->moduleIndex << " channel " << m->dmxChannel << endl;
         }
@@ -204,6 +213,7 @@ void DmxOut1::refreshModuleChain() {
         }
 
         i++;
+        relativeCounter++;
     }
 
     moduleChainSize = moduleChain.size();
@@ -250,6 +260,11 @@ void DmxOut1::onExpanderChange (const ExpanderChangeEvent &e) {
 bool DmxOut1::isSameModel(Module* otherModule) {
     return otherModule->model->plugin->name == "QualiaTouch"
         && otherModule->model->slug == "DmxOut1";
+}
+
+void DmxOut1::toggleUseOwnDmxAddress() {
+    useOwnDmxAddress = !useOwnDmxAddress;
+    recalculateChain = true;
 }
 
 void DmxOut1::process(const ProcessArgs& args) {
@@ -332,6 +347,7 @@ void DmxOut1::process(const ProcessArgs& args) {
 json_t* DmxOut1::dataToJson() {
     json_t* rootJson = json_object();
     json_object_set_new(rootJson, dmxAddressJsonKey.c_str(), json_integer(dmxAddress));
+    json_object_set_new(rootJson, useOwnDmxAddressJsonKey.c_str(), json_boolean(useOwnDmxAddress));
 
     return rootJson;
 }
@@ -343,11 +359,33 @@ void DmxOut1::dataFromJson(json_t* rootJson)  {
         free(jsonStr);
     }
 
+    json_t* useOwnDmxAddressParamJson = json_object_get(rootJson, useOwnDmxAddressJsonKey.c_str());
+    if (useOwnDmxAddressParamJson) {
+        useOwnDmxAddress = json_boolean_value(useOwnDmxAddressParamJson);
+    }
+
     json_t* dmxAddressParamJson = json_object_get(rootJson, dmxAddressJsonKey.c_str());
     if (dmxAddressParamJson) {
         dmxAddress = json_integer_value(dmxAddressParamJson);
     }
 }
+
+struct UseOwnDmxAddressItem : ui::MenuItem {
+    DmxOut1* module;
+
+    UseOwnDmxAddressItem(DmxOut1* moduleParam) {
+        module = moduleParam;
+    }
+
+    void onAction(const event::Action& e) override {
+        module->toggleUseOwnDmxAddress();
+    }
+
+    void step() override {
+        rightText = module->useOwnDmxAddress ? "✔" : "";
+        MenuItem::step();
+    }
+};
 
 struct DmxAddressField : ui::TextField {
     DmxOut1* module;
@@ -415,11 +453,17 @@ struct DmxOut1Widget : ModuleWidget {
         menu->addChild(new MenuSeparator);
         menu->addChild(createMenuLabel("DMX settings"));
 
-        DmxAddressMenuItem* addressItem = new DmxAddressMenuItem;
-        addressItem->text = "DMX Address";
-        addressItem->rightText = std::to_string(module->dmxAddress) + " " + RIGHT_ARROW;
-        addressItem->module = module;
-        menu->addChild(addressItem);
+        UseOwnDmxAddressItem* useOwnDmxAddressItem = new UseOwnDmxAddressItem(module);
+        useOwnDmxAddressItem->text = "Use own DMX address";
+        menu->addChild(useOwnDmxAddressItem);
+
+        if (module->useOwnDmxAddress) {
+            DmxAddressMenuItem* addressItem = new DmxAddressMenuItem;
+            addressItem->text = "DMX Address";
+            addressItem->rightText = std::to_string(module->dmxAddress) + " " + RIGHT_ARROW;
+            addressItem->module = module;
+            menu->addChild(addressItem);
+        }
 
         menu->addChild(rack::createBoolPtrMenuItem("Blackout triggered", "", &module->blackoutTriggered));
 
@@ -430,6 +474,7 @@ struct DmxOut1Widget : ModuleWidget {
         menu->addChild(createMenuLabel("Master " + std::to_string(module->isMaster)));
         menu->addChild(createMenuLabel("Chain size " + std::to_string(module->moduleChainSize)));
         menu->addChild(createMenuLabel("Channel " + std::to_string(module->dmxChannel)));
+        menu->addChild(createMenuLabel("Use own address " + std::to_string(module->useOwnDmxAddress)));
         menu->addChild(rack::createBoolPtrMenuItem("Debug", "", &module->debug));
         menu->addChild(rack::createBoolPtrMenuItem("Debug Chain", "", &module->debugChain));
     }
