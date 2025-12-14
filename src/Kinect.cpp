@@ -59,7 +59,7 @@ struct KinectSensor : Module {
         NUM_OUTPUTS
     };
 
-	float phase = 0.f;
+    bool debug = false;
 
 	float timeSinceLastLoop = 0.f;
 
@@ -83,10 +83,10 @@ struct KinectSensor : Module {
     }
 
     ~KinectSensor() {
-        cout << "destroying Kinect" << endl;
         running = false;
-        if (kinectThread.joinable())
+        if (kinectThread.joinable()) {
             kinectThread.join();
+        }
     }
 
     void startKinectThread();
@@ -94,30 +94,35 @@ struct KinectSensor : Module {
 };
 
 void KinectSensor::startKinectThread() {
-    cout << "startKinectThread" << endl;
     kinectThread = std::thread([this]() {
         Freenect::Freenect freenect;
-        cout << "creating device" << endl;
         HandTracker& device = freenect.createDevice<HandTracker>(0);
-        cout << "starting device" << endl;
-        device.startDepth();
 
-        cout << "starting loop" << endl;
+        if (debug) {
+            cout << "starting device" << endl;
+        }
+
+        device.startDepth();
         while (running) {
             int x, y, z;
             if (device.getHandPosition(x, y, z)) {
-                //cout << "got hand position " << x << " " << y << " " << z << endl;
+                if (debug) {
+                    cout << "got hand position " << x << " " << y << " " << z << endl;
+                }
                 handX = static_cast<float>(x);
                 handY = static_cast<float>(y);
                 handZ = static_cast<float>(z);
             } else {
-                cout << "did not get hand positin" << endl;
+                // if (debug) {
+                    cerr << "did not get hand position" << endl;
+                // }
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(30)); // todo param
         }
-        cout << "end loop" << endl;
     });
-    cout << "end startKinectThread" << endl;
+    if (debug) {
+        cout << "end startKinectThread" << endl;
+    }
 }
 
 void KinectSensor::process(const ProcessArgs& args) {
@@ -127,12 +132,17 @@ void KinectSensor::process(const ProcessArgs& args) {
     }
 
     float threshold_mm = params[THRESHOLD_PARAM].getValue();
-    cout << "threshold_mm " << threshold_mm << endl;
+    if (debug) {
+        cout << "threshold_mm " << threshold_mm << endl;
+    }
 
     lowerThreshold = threshold_mm;
     upperThreshold = lowerThreshold + 50;
 
-    cout << "before getting data" << endl;
+    if (debug) {
+        cout << "before getting data" << endl;
+    }
+
     float rawX = handX;
     float rawY = handY;
     float rawDepth = handZ;
@@ -145,7 +155,9 @@ void KinectSensor::process(const ProcessArgs& args) {
     smoothedY = alpha * normY + (1 - alpha) * smoothedY;
     smoothedD = alpha * normD + (1 - alpha) * smoothedD;
 
-    cout << "threshold param = " << threshold_mm << " ; lower = " << lowerThreshold << " ; upper = " << upperThreshold << "rawDepth = " << rawDepth << " rawDepth < lowerThreshold = " << (rawDepth < lowerThreshold ? "1" : "0") << "rawDepth > upperThreshold = " << (rawDepth > upperThreshold ? "1" : "0") << endl;
+    if (debug) {
+        cout << "threshold param = " << threshold_mm << " ; lower = " << lowerThreshold << " ; upper = " << upperThreshold << "rawDepth = " << rawDepth << " rawDepth < lowerThreshold = " << (rawDepth < lowerThreshold ? "1" : "0") << "rawDepth > upperThreshold = " << (rawDepth > upperThreshold ? "1" : "0") << endl;
+    }
 
     if (rawDepth < lowerThreshold) {
         thresholdPassed = true;
@@ -153,7 +165,7 @@ void KinectSensor::process(const ProcessArgs& args) {
         thresholdPassed = false;
     }
 
-    cout << "got voltages " << normX << " " << normY << " " << normD << endl;
+    //cout << "got voltages " << normX << " " << normY << " " << normD << endl;
     outputs[OUT_HAND_X].setVoltage(normX);
     outputs[OUT_HAND_Y].setVoltage(normY);
     outputs[OUT_HAND_DEPTH].setVoltage(normD);
@@ -163,19 +175,28 @@ void KinectSensor::process(const ProcessArgs& args) {
 }
 
 struct KinectSensorWidget : ModuleWidget {
-    KinectSensorWidget(KinectSensor* module) {
+    KinectSensor* module;
+    KinectSensorWidget(KinectSensor* moduleParam) {
+        module = moduleParam;
         setModule(module);
 		setPanel(createPanel(asset::plugin(pluginInstance, "res/kinect.svg")));
 
 		addChild(createWidget<ScrewSilver>(Vec(0, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH * 2, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-        addParam(createParamCentered<RoundSmallBlackKnob>(mm2px(Vec(7.625, 110)), module, KinectSensor::THRESHOLD_PARAM));
+        addParam(createParamCentered<Trimpot>(mm2px(Vec(7.625, 110)), module, KinectSensor::THRESHOLD_PARAM));
 
         addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 30)), module, KinectSensor::OUT_HAND_X));
         addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 50)), module, KinectSensor::OUT_HAND_Y));
         addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 70)), module, KinectSensor::OUT_HAND_DEPTH));
         addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 90)), module, KinectSensor::OUT_HAND_DEPTH_THRESHOLD));
+    }
+
+    void appendContextMenu(Menu* menu) override {
+        menu->addChild(rack::createBoolPtrMenuItem("Debug", "", &module->debug));
+
+        menu->addChild(new MenuSeparator);
+        menu->addChild(createMenuLabel("Debug info"));
     }
 };
 
