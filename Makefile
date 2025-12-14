@@ -21,5 +21,9 @@ DISTRIBUTABLES += $(wildcard README*)
 # json
 PLUGIN_CPPFLAGS += -Isrc
 
+# freenect
+FLAGS += -I/usr/include/libusb-1.0 -lfreenect -lfreenect_sync -lpthread
+LDFLAGS += -lfreenect
+
 # Include the Rack plugin Makefile framework
 include $(RACK_DIR)/plugin.mk
