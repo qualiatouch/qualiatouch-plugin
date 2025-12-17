@@ -63,6 +63,9 @@ struct KinectSensor : Module {
 
 	float timeSinceLastLoop = 0.f;
 
+    bool hasDevice = false;
+    HandTracker* device = nullptr;
+
     std::atomic<float> handX{0.f};
     std::atomic<float> handY{0.f};
     std::atomic<float> handZ{0.f};
@@ -78,6 +81,28 @@ struct KinectSensor : Module {
         configOutput(OUT_HAND_Y, "Hand y");
         configOutput(OUT_HAND_DEPTH, "Hand depth");
         configOutput(OUT_HAND_DEPTH_THRESHOLD, "Hand depth threshold attained");
+
+        Freenect::Freenect freenect;
+        int deviceCount = freenect.deviceCount();
+        if (debug) {
+            cout << "device count : " << freenect.deviceCount() << endl;
+        }
+        if (deviceCount < 1) {
+            return;
+        }
+
+        if (debug) {
+            cout << "creating device" << endl;
+        }
+
+        try {
+            device = &freenect.createDevice<HandTracker>(0);
+        } catch (std::runtime_error const & ex) {
+            cerr << "Exception while creating device : " << ex.what() << endl;
+            return;
+        }
+
+        hasDevice = true;
 
         startKinectThread();
     }
@@ -95,17 +120,14 @@ struct KinectSensor : Module {
 
 void KinectSensor::startKinectThread() {
     kinectThread = std::thread([this]() {
-        Freenect::Freenect freenect;
-        HandTracker& device = freenect.createDevice<HandTracker>(0);
-
         if (debug) {
             cout << "starting device" << endl;
         }
 
-        device.startDepth();
+        device->startDepth();
         while (running) {
             int x, y, z;
-            if (device.getHandPosition(x, y, z)) {
+            if (device->getHandPosition(x, y, z)) {
                 if (debug) {
                     cout << "got hand position " << x << " " << y << " " << z << endl;
                 }
@@ -117,7 +139,7 @@ void KinectSensor::startKinectThread() {
                     cerr << "did not get hand position" << endl;
                 // }
             }
-            std::this_thread::sleep_for(std::chrono::milliseconds(30)); // todo param
+            std::this_thread::sleep_for(std::chrono::milliseconds(50)); // todo param
         }
     });
     if (debug) {
@@ -126,6 +148,10 @@ void KinectSensor::startKinectThread() {
 }
 
 void KinectSensor::process(const ProcessArgs& args) {
+    if (!hasDevice) {
+        return;
+    }
+
     timeSinceLastLoop += args.sampleTime;
     if (timeSinceLastLoop < 0.03f) {
         return;
