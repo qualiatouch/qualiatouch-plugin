@@ -64,7 +64,6 @@ struct KinectSensor : Module {
 	float timeSinceLastLoop = 0.f;
 
     bool hasDevice = false;
-    HandTracker* device = nullptr;
 
     std::atomic<float> handX{0.f};
     std::atomic<float> handY{0.f};
@@ -95,14 +94,15 @@ struct KinectSensor : Module {
             cout << "creating device" << endl;
         }
 
-        try {
-            device = &freenect.createDevice<HandTracker>(0);
-        } catch (std::runtime_error const & ex) {
-            cerr << "Exception while creating device : " << ex.what() << endl;
-            return;
-        }
+        // try {
+        //     // device = &freenect.createDevice<HandTracker>(0);
+        // } catch (std::runtime_error const & ex) {
+        //     cerr << "Exception while creating device : " << ex.what() << endl;
+        //     return;
+        // }
 
-        hasDevice = true;
+        // hasDevice = true;
+        //     cout << "depth resolution" << device->getDepthResolution() << endl;
 
         startKinectThread();
     }
@@ -124,10 +124,14 @@ void KinectSensor::startKinectThread() {
             cout << "starting device" << endl;
         }
 
-        device->startDepth();
+        Freenect::Freenect freenect;
+        HandTracker& device = freenect.createDevice<HandTracker>(0);
+
+        hasDevice = true;
+
         while (running) {
             int x, y, z;
-            if (device->getHandPosition(x, y, z)) {
+            if (device.getHandPosition(x, y, z)) {
                 if (debug) {
                     cout << "got hand position " << x << " " << y << " " << z << endl;
                 }
