@@ -59,6 +59,16 @@ struct KinectSensor : Module {
         NUM_OUTPUTS
     };
 
+    enum TiltDegrees {
+        TILT_0,
+        TILT_5,
+        TILT_10,
+        TILT_15,
+        TILT_20,
+        TILT_25,
+        TILT_30
+    };
+
     bool debug = false;
 
 	float timeSinceLastLoop = 0.f;
@@ -70,6 +80,9 @@ struct KinectSensor : Module {
     std::atomic<float> handZ{0.f};
     std::thread kinectThread;
     std::atomic<bool> running{true};
+
+    TiltDegrees tiltRequest = TILT_0;
+    TiltDegrees currentTilt = TILT_0;
 
     KinectSensor() {
         config(NUM_PARAMS, 0, NUM_OUTPUTS);
@@ -116,7 +129,12 @@ struct KinectSensor : Module {
 
     void startKinectThread();
     void process(const ProcessArgs& args) override;
+    int toDegrees(TiltDegrees tilt);
 };
+
+int KinectSensor::toDegrees(TiltDegrees tilt) {
+    return tilt * 5;
+}
 
 void KinectSensor::startKinectThread() {
     kinectThread = std::thread([this]() {
@@ -130,6 +148,16 @@ void KinectSensor::startKinectThread() {
         hasDevice = true;
 
         while (running) {
+            //cout << "tiltRequest " << tiltRequest << " currentTilt " << currentTilt << endl;
+            if (tiltRequest != currentTilt) {
+                currentTilt = tiltRequest;
+                if (debug) {
+                    cout << "setTiltDegrees " << tiltRequest << endl;
+                }
+
+                device.setTiltDegrees(toDegrees(currentTilt));
+            }
+
             int x, y, z;
             if (device.getHandPosition(x, y, z)) {
                 if (debug) {
@@ -223,10 +251,28 @@ struct KinectSensorWidget : ModuleWidget {
     }
 
     void appendContextMenu(Menu* menu) override {
+        menu->addChild(new MenuSeparator);
+        menu->addChild(createIndexPtrSubmenuItem("Sensor tilt",
+            {
+                "0°",
+                "5°",
+                "10°",
+                "15°",
+                "20°",
+                "25°",
+                "30°"
+            },
+            &module->tiltRequest));
+
         menu->addChild(rack::createBoolPtrMenuItem("Debug", "", &module->debug));
 
-        menu->addChild(new MenuSeparator);
-        menu->addChild(createMenuLabel("Debug info"));
+        if (module->debug) {
+            menu->addChild(new MenuSeparator);
+            menu->addChild(createMenuLabel("Debug info"));
+            menu->addChild(createMenuLabel("HasDevice " + to_string(module->hasDevice)));
+            menu->addChild(createMenuLabel("Current tilt " + to_string(module->currentTilt)));
+            menu->addChild(createMenuLabel("Requested tilt " + to_string(module->tiltRequest)));
+        }
     }
 };
 
