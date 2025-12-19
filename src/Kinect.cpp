@@ -107,16 +107,6 @@ struct KinectSensor : Module {
             cout << "creating device" << endl;
         }
 
-        // try {
-        //     // device = &freenect.createDevice<HandTracker>(0);
-        // } catch (std::runtime_error const & ex) {
-        //     cerr << "Exception while creating device : " << ex.what() << endl;
-        //     return;
-        // }
-
-        // hasDevice = true;
-        //     cout << "depth resolution" << device->getDepthResolution() << endl;
-
         startKinectThread();
     }
 
@@ -146,6 +136,8 @@ void KinectSensor::startKinectThread() {
         HandTracker& device = freenect.createDevice<HandTracker>(0);
 
         hasDevice = true;
+
+        device.startDepth();
 
         while (running) {
             //cout << "tiltRequest " << tiltRequest << " currentTilt " << currentTilt << endl;
@@ -185,20 +177,20 @@ void KinectSensor::process(const ProcessArgs& args) {
     }
 
     timeSinceLastLoop += args.sampleTime;
-    if (timeSinceLastLoop < 0.03f) {
+    if (timeSinceLastLoop < 0.05f) {
         return;
     }
 
     float threshold_mm = params[THRESHOLD_PARAM].getValue();
     if (debug) {
-        cout << "threshold_mm " << threshold_mm << endl;
+        //cout << "threshold_mm " << threshold_mm << endl;
     }
 
     lowerThreshold = threshold_mm;
     upperThreshold = lowerThreshold + 50;
 
     if (debug) {
-        cout << "before getting data" << endl;
+        //cout << "before getting data" << endl;
     }
 
     float rawX = handX;
@@ -214,7 +206,7 @@ void KinectSensor::process(const ProcessArgs& args) {
     smoothedD = alpha * normD + (1 - alpha) * smoothedD;
 
     if (debug) {
-        cout << "threshold param = " << threshold_mm << " ; lower = " << lowerThreshold << " ; upper = " << upperThreshold << "rawDepth = " << rawDepth << " rawDepth < lowerThreshold = " << (rawDepth < lowerThreshold ? "1" : "0") << "rawDepth > upperThreshold = " << (rawDepth > upperThreshold ? "1" : "0") << endl;
+        //cout << "threshold param = " << threshold_mm << " ; lower = " << lowerThreshold << " ; upper = " << upperThreshold << "rawDepth = " << rawDepth << " rawDepth < lowerThreshold = " << (rawDepth < lowerThreshold ? "1" : "0") << "rawDepth > upperThreshold = " << (rawDepth > upperThreshold ? "1" : "0") << endl;
     }
 
     if (rawDepth < lowerThreshold) {
