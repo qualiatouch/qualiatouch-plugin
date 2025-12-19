@@ -29,6 +29,14 @@
       "tags": [
         "External"
       ]
+    },
+    {
+      "slug": "KinectSensor",
+      "name": "KinectSensor",
+      "description": "Receive data from Kinect sensor. Not affiliated with Kinect nor Microsoft.",
+      "tags": [
+        "External"
+      ]
     }
   ]
 }
