@@ -139,6 +139,8 @@ void DmxOut1::refreshModuleChain() {
     Module* leftModule = getLeftExpander().module;
     if (leftModule == nullptr || false == isSameModel(leftModule)) {
         isMaster = true;
+        useOwnDmxAddress = true;
+        dmxAddress = dmxChannel;
         if (debugChain) {
             cout << "module " << getId() << " is master" << endl;
         }
@@ -238,7 +240,7 @@ void DmxOut1::refreshModuleChain() {
  *
  * il vaut mieux ne regarder le module d'un côté que si on vient de l'expanderchange de ce côté
  */
-void DmxOut1::onExpanderChange (const ExpanderChangeEvent &e) {
+void DmxOut1::onExpanderChange(const ExpanderChangeEvent &e) {
     Module* rightModule = getRightExpander().module;
     Module* leftModule = getLeftExpander().module;
 
@@ -406,6 +408,7 @@ struct DmxAddressField : ui::TextField {
             int dmxAddress = std::stoi(text);
             if (module) {
                 module->dmxAddress = dmxAddress;
+                module->dmxChannel = dmxAddress;
                 module->recalculateChain = true;
             }
             ui::MenuOverlay* overlay = getAncestorOfType<ui::MenuOverlay>();
