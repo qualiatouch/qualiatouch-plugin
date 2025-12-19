@@ -71,6 +71,7 @@ struct DmxOut1 : Module {
     bool useOwnDmxAddress = false;
     unsigned int dmxAddress = 1;
     unsigned int dmxChannel = 1;
+    bool updateDmxChannelDisplayWidget = false;
 
     ola::DmxBuffer buffer;
 
@@ -134,6 +135,7 @@ void DmxOut1::refreshModuleChain() {
     isMaster = false;
     moduleChain.clear();
 
+    // identification du master + déclenchement de refreshModuleChain sur le module à gauche
     Module* leftModule = getLeftExpander().module;
     if (leftModule == nullptr || false == isSameModel(leftModule)) {
         isMaster = true;
@@ -171,6 +173,7 @@ void DmxOut1::refreshModuleChain() {
     int address = dmxAddress;
     int relativeCounter = 0;
 
+    // remplissage de la chaîne
     while (m && i < 20) { // todo const limit
         m->moduleIndex = i;
         if (m->useOwnDmxAddress) {
@@ -178,6 +181,7 @@ void DmxOut1::refreshModuleChain() {
             relativeCounter = 0;
         }
         m->dmxChannel = address + relativeCounter;
+        m->updateDmxChannelDisplayWidget = true;
         if (debugChain) {
             cout << "       adding module " << m->moduleIndex << " channel " << m->dmxChannel << endl;
         }
@@ -265,6 +269,7 @@ bool DmxOut1::isSameModel(Module* otherModule) {
 void DmxOut1::toggleUseOwnDmxAddress() {
     useOwnDmxAddress = !useOwnDmxAddress;
     recalculateChain = true;
+    updateDmxChannelDisplayWidget = true;
 }
 
 void DmxOut1::process(const ProcessArgs& args) {
@@ -429,12 +434,57 @@ struct DmxAddressMenuItem : ui::MenuItem {
     }
 };
 
+struct DmxChannelDisplayWidget : Widget {
+    DmxOut1* module;
+    FramebufferWidget* parentFrameBufferWidget;
+
+    void setModule(DmxOut1* moduleParam) {
+        module = moduleParam;
+    }
+
+    void setParent(FramebufferWidget* parent) {
+        parentFrameBufferWidget = parent;
+    }
+
+    void step() override {
+        if (module->updateDmxChannelDisplayWidget) {
+            module->updateDmxChannelDisplayWidget = false;
+            if (module->debug) {
+                cout << "updating channel display widget" << endl;
+            }
+            parentFrameBufferWidget->setDirty();
+        }
+    }
+
+	void draw(const DrawArgs& args) override {
+        std::string fontPath = asset::system("res/fonts/ShareTechMono-Regular.ttf");
+        std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
+
+        if (font) {
+            nvgFontFaceId(args.vg, font->handle);
+        } else {
+            cerr << "failed to load font " << fontPath << endl;
+        }
+
+        nvgFontSize(args.vg, 16.0);
+        nvgTextAlign(args.vg, NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE);
+        if (module->useOwnDmxAddress) {
+            nvgFillColor(args.vg, nvgRGBf(0.f, 0.f, 0.8f));
+        } else {
+            nvgFillColor(args.vg, nvgRGBf(0.8f, 0.8f, 0.8f));
+        }
+
+        std::string text = to_string(module->dmxChannel);
+        nvgText(args.vg, 0.0, 10, text.c_str(), NULL);
+    }
+};
+
 struct DmxOut1Widget : ModuleWidget {
     DmxOut1* module;
+    FramebufferWidget* frameBufferWidget;
+    DmxChannelDisplayWidget* dmxChannelDisplayWidget;
 
     DmxOut1Widget(DmxOut1* moduleParam) {
-        //cout << "[DMX] construct DmxOut1Widget" << endl;
-
         module = moduleParam;
         setModule(module);
 
@@ -447,6 +497,15 @@ struct DmxOut1Widget : ModuleWidget {
 
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
 		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+
+        frameBufferWidget = new FramebufferWidget;
+        addChild(frameBufferWidget);
+
+        dmxChannelDisplayWidget = createWidget<DmxChannelDisplayWidget>(Vec(10,150));
+        dmxChannelDisplayWidget->setModule(module);
+        dmxChannelDisplayWidget->setParent(frameBufferWidget);
+        dmxChannelDisplayWidget->setSize(Vec(200,100));
+        frameBufferWidget->addChild(dmxChannelDisplayWidget);
     }
 
     void appendContextMenu(Menu* menu) override {
