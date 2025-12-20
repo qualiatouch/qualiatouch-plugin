@@ -450,6 +450,10 @@ struct DmxChannelDisplayWidget : Widget {
     }
 
     void step() override {
+        if (!module) {
+            return;
+        }
+
         if (module->updateDmxChannelDisplayWidget) {
             module->updateDmxChannelDisplayWidget = false;
             if (module->debug) {
@@ -471,13 +475,22 @@ struct DmxChannelDisplayWidget : Widget {
 
         nvgFontSize(args.vg, 16.0);
         nvgTextAlign(args.vg, NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE);
+
+        std::string text = "DMX";
+
+        if (!module) {
+            nvgText(args.vg, 0.0, 10, text.c_str(), NULL);
+            return;
+        }
+
         if (module->useOwnDmxAddress) {
             nvgFillColor(args.vg, nvgRGBf(0.f, 0.f, 0.8f));
         } else {
             nvgFillColor(args.vg, nvgRGBf(0.8f, 0.8f, 0.8f));
         }
 
-        std::string text = to_string(module->dmxChannel);
+        text = to_string(module->dmxChannel);
+
         nvgText(args.vg, 0.0, 10, text.c_str(), NULL);
     }
 };
