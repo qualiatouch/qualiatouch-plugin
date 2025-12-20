@@ -466,32 +466,37 @@ struct DmxChannelDisplayWidget : Widget {
 	void draw(const DrawArgs& args) override {
         std::string fontPath = asset::system("res/fonts/ShareTechMono-Regular.ttf");
         std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
+        std::string boldFontPath = asset::system("res/fonts/ShareTechMono-Bold.ttf");
+        std::shared_ptr<Font> boldFont = APP->window->loadFont(fontPath);
 
-        if (font) {
-            nvgFontFaceId(args.vg, font->handle);
-        } else {
+        if (!font) {
             cerr << "failed to load font " << fontPath << endl;
+        }
+        if (!boldFont) {
+            cerr << "failed to load bold font " << boldFontPath << endl;
         }
 
         nvgFontSize(args.vg, 16.0);
         nvgTextAlign(args.vg, NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE);
 
-        std::string text = "DMX";
+        char text[4];
 
         if (!module) {
-            nvgText(args.vg, 0.0, 10, text.c_str(), NULL);
+            nvgText(args.vg, 0.0, 10, "DMX", NULL);
             return;
         }
 
         if (module->useOwnDmxAddress) {
-            nvgFillColor(args.vg, nvgRGBf(0.f, 0.f, 0.8f));
+            nvgFontFaceId(args.vg, boldFont->handle);
+            nvgFillColor(args.vg, nvgRGBf(1.f, 1.f, 1.f));
         } else {
-            nvgFillColor(args.vg, nvgRGBf(0.8f, 0.8f, 0.8f));
+            nvgFontFaceId(args.vg, font->handle);
+            nvgFillColor(args.vg, nvgRGBf(0.7f, 0.7f, 0.7f));
         }
 
-        text = to_string(module->dmxChannel);
+        snprintf(text, 4, "%03d", module->dmxChannel);
 
-        nvgText(args.vg, 0.0, 10, text.c_str(), NULL);
+        nvgText(args.vg, 0.0, 12, text, NULL);
     }
 };
 
@@ -517,10 +522,10 @@ struct DmxOut1Widget : ModuleWidget {
         frameBufferWidget = new FramebufferWidget;
         addChild(frameBufferWidget);
 
-        dmxChannelDisplayWidget = createWidget<DmxChannelDisplayWidget>(Vec(10,150));
+        dmxChannelDisplayWidget = createWidget<DmxChannelDisplayWidget>(Vec(11,150));
         dmxChannelDisplayWidget->setModule(module);
         dmxChannelDisplayWidget->setParent(frameBufferWidget);
-        dmxChannelDisplayWidget->setSize(Vec(200,100));
+        dmxChannelDisplayWidget->setSize(Vec(25, 12));
         frameBufferWidget->addChild(dmxChannelDisplayWidget);
     }
 
