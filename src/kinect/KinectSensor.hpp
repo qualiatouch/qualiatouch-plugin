@@ -1,4 +1,5 @@
-#include "plugin.hpp"
+#pragma once
+#include "../plugin.hpp"
 #include "HandTracker.hpp"
 #include <thread>
 #include <atomic>
@@ -12,6 +13,10 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
+
+using namespace std;
+
+using namespace rack;
 
 struct KinectSensor : Module {
     enum ParamIds {
@@ -51,6 +56,9 @@ struct KinectSensor : Module {
 
     TiltDegrees tiltRequest = TILT_0;
     TiltDegrees currentTilt = TILT_0;
+
+    KinectSensor();
+    ~KinectSensor();
 
     void startKinectThread();
     void process(const ProcessArgs& args) override;
