@@ -1,3 +1,4 @@
+#pragma once
 #include <libfreenect.hpp>
 #include <mutex>
 #include <vector>

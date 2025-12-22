@@ -1,20 +1,9 @@
-#include "plugin.hpp"
-#include <thread>
-#include <atomic>
-#include <iostream>
-#include <mutex>
-#include <queue>
-#include <vector>
-#include <functional>
-#include <limits>
-#include <libfreenect.hpp>
-#include <fcntl.h>
-#include <sys/mman.h>
-#include <unistd.h>
-
-#include "HandTracker.hpp"
+#include "KinectSensor.hpp"
+#include "../util/utils.hpp"
 
 using namespace std;
+
+using namespace utils;
 
 const float alpha = 0.9f;
 
@@ -28,99 +17,38 @@ float upperThreshold = 45 * 10.f;
 
 bool thresholdPassed = false;
 
-static float scaleAndClamp(
-    float rawValue,
-    float rawMin, float rawMax,
-    float outMin, float outMax,
-    bool invert = false
-) {
-    float normalized = (rawValue - rawMin) / (rawMax - rawMin);
+KinectSensor::KinectSensor() {
+    config(NUM_PARAMS, 0, NUM_OUTPUTS);
 
-    float scaled = normalized * (outMax - outMin) + outMin;
+    configParam(THRESHOLD_PARAM, 100.f, 1000.f, 500.f, "Depth threshold", " mm");
 
-    if (invert) {
-        scaled = outMax - (scaled - outMin);
+    configOutput(OUT_HAND_X, "Hand x");
+    configOutput(OUT_HAND_Y, "Hand y");
+    configOutput(OUT_HAND_DEPTH, "Hand depth");
+    configOutput(OUT_HAND_DEPTH_THRESHOLD, "Hand depth threshold attained");
+
+    Freenect::Freenect freenect;
+    int deviceCount = freenect.deviceCount();
+    if (debug) {
+        cout << "device count : " << freenect.deviceCount() << endl;
+    }
+    if (deviceCount < 1) {
+        return;
     }
 
-    return clamp(scaled, outMin, outMax);
+    if (debug) {
+        cout << "creating device" << endl;
+    }
+
+    startKinectThread();
 }
 
-struct KinectSensor : Module {
-    enum ParamIds {
-        THRESHOLD_PARAM,
-        NUM_PARAMS
-    };
-
-    enum OutputIds {
-        OUT_HAND_X,
-        OUT_HAND_Y,
-        OUT_HAND_DEPTH,
-        OUT_HAND_DEPTH_THRESHOLD,
-        NUM_OUTPUTS
-    };
-
-    enum TiltDegrees {
-        TILT_0,
-        TILT_5,
-        TILT_10,
-        TILT_15,
-        TILT_20,
-        TILT_25,
-        TILT_30
-    };
-
-    bool debug = false;
-
-	float timeSinceLastLoop = 0.f;
-
-    bool hasDevice = false;
-
-    std::atomic<float> handX{0.f};
-    std::atomic<float> handY{0.f};
-    std::atomic<float> handZ{0.f};
-    std::thread kinectThread;
-    std::atomic<bool> running{true};
-
-    TiltDegrees tiltRequest = TILT_0;
-    TiltDegrees currentTilt = TILT_0;
-
-    KinectSensor() {
-        config(NUM_PARAMS, 0, NUM_OUTPUTS);
-
-        configParam(THRESHOLD_PARAM, 100.f, 1000.f, 500.f, "Depth threshold", " mm");
-
-        configOutput(OUT_HAND_X, "Hand x");
-        configOutput(OUT_HAND_Y, "Hand y");
-        configOutput(OUT_HAND_DEPTH, "Hand depth");
-        configOutput(OUT_HAND_DEPTH_THRESHOLD, "Hand depth threshold attained");
-
-        Freenect::Freenect freenect;
-        int deviceCount = freenect.deviceCount();
-        if (debug) {
-            cout << "device count : " << freenect.deviceCount() << endl;
-        }
-        if (deviceCount < 1) {
-            return;
-        }
-
-        if (debug) {
-            cout << "creating device" << endl;
-        }
-
-        startKinectThread();
+KinectSensor::~KinectSensor() {
+    running = false;
+    if (kinectThread.joinable()) {
+        kinectThread.join();
     }
-
-    ~KinectSensor() {
-        running = false;
-        if (kinectThread.joinable()) {
-            kinectThread.join();
-        }
-    }
-
-    void startKinectThread();
-    void process(const ProcessArgs& args) override;
-    int toDegrees(TiltDegrees tilt);
-};
+}
 
 int KinectSensor::toDegrees(TiltDegrees tilt) {
     return tilt * 5;

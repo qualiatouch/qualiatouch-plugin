@@ -1,131 +1,48 @@
-#include "plugin.hpp"
-#include <thread>
-#include <atomic>
-#include <iostream>
-#include <mutex>
-#include <queue>
-#include <vector>
-#include <functional>
-
-#include <stdlib.h>
-#include <unistd.h>
-#include <ola/DmxBuffer.h>
-#include <ola/Logging.h>
-#include <ola/client/StreamingClient.h>
+#include "DmxOut1.hpp"
 
 using namespace std;
 
 using namespace rack;
 
-struct DmxOut1 : Module {
-    enum ParamId {
-        BLACKOUT_BUTTON,
-        PARAMS_LEN
-    };
-
-    enum InputId {
-        INPUT_CHANNEL_0,
-        INPUT_BLACKOUT,
-        INPUTS_LEN
-    };
-
-    enum LightIn {
-        BLACKOUT_LIGHT,
-        LIGHTS_LEN
-    };
-
-    enum OutputIds {
-        OUTPUTS_LEN
-    };
-
-    std::string useOwnDmxAddressJsonKey = "useOwnDmxAddress";
-    std::string dmxAddressJsonKey = "dmxAddress";
-
-    // module params
-	float timeSinceLastLoop = 0.f;
-    int loop = 0;
-    bool debug = false;
-    bool debugChain = false;
-    float sampleRate = 0.1f;
-
-    // module chain
-    bool isMaster = false;
-    std::vector<DmxOut1*> moduleChain;
-    int moduleIndex = 0;
-    int moduleChainSize = 0;
-    bool recalculateChain = true;
-
-    // module working variables
-    float input0;
-    float clamped0;
-    float dmx0;
-    float dmxValue;
-
-    // blackout button
-    dsp::SchmittTrigger blackoutButtonTrigger;
-    dsp::SchmittTrigger blackoutInputTrigger;
-    bool blackoutTriggered = false;
-
-    // DMX
-    unsigned int dmxUniverse = 1;
-    bool useOwnDmxAddress = false;
-    unsigned int dmxAddress = 1;
-    unsigned int dmxChannel = 1;
-    bool updateDmxChannelDisplayWidget = false;
-
-    ola::DmxBuffer buffer;
-
-    std::unique_ptr<ola::client::StreamingClient> ola_client;
-
-    DmxOut1() {
-        if (debug) {
-            cout << "[DMX] construct DmxOut1" << endl;
-        }
-
-        // # init Module
-        config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
-
-        configButton(BLACKOUT_BUTTON, "Blackout");
-        configInput(INPUT_CHANNEL_0, "channel 0");
-        configInput(INPUT_BLACKOUT, "Blackout (Trigger or gate to blackout)");
-        configLight(BLACKOUT_LIGHT, "Blackout triggered - deactivate it in the menu");
-
-        // # init OLA / DMX
-
-        if (debug) {
-            cout << "OLA : init logging" << endl;
-        }
-        ola::InitLogging(ola::OLA_LOG_WARN, ola::OLA_LOG_STDERR);
-        
-
-        if (debug) {
-            cout << "OLA : init client" << endl;
-        }
-        ola_client = std::unique_ptr<ola::client::StreamingClient>(new ola::client::StreamingClient());
-
-        if (debug) {
-            cout << "OLA : setup client" << endl;
-        }
-        if (!ola_client->Setup()) {
-            std::cerr << "Setup failed" << endl;
-        }
-
-        if (debug) {
-            cout << "OLA : blackout" << endl;
-        }
-        buffer.Blackout();
+DmxOut1::DmxOut1() {
+    if (debug) {
+        cout << "[DMX] construct DmxOut1" << endl;
     }
 
-    void refreshModuleChain();
-    void onExpanderChange(const ExpanderChangeEvent &e) override;
-    void toggleUseOwnDmxAddress();
+    // # init Module
+    config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
-    void process(const ProcessArgs& arg) override;
+    configButton(BLACKOUT_BUTTON, "Blackout");
+    configInput(INPUT_CHANNEL_0, "channel 0");
+    configInput(INPUT_BLACKOUT, "Blackout (Trigger or gate to blackout)");
+    configLight(BLACKOUT_LIGHT, "Blackout triggered - deactivate it in the menu");
 
-    json_t* dataToJson() override;
-    void dataFromJson(json_t* rootJson) override;
-    bool isSameModel(Module* otherModule);
-};
+    // # init OLA / DMX
+
+    if (debug) {
+        cout << "OLA : init logging" << endl;
+    }
+    ola::InitLogging(ola::OLA_LOG_WARN, ola::OLA_LOG_STDERR);
+    
+
+    if (debug) {
+        cout << "OLA : init client" << endl;
+    }
+    ola_client = std::unique_ptr<ola::client::StreamingClient>(new ola::client::StreamingClient());
+
+    if (debug) {
+        cout << "OLA : setup client" << endl;
+    }
+    if (!ola_client->Setup()) {
+        std::cerr << "Setup failed" << endl;
+    }
+
+    if (debug) {
+        cout << "OLA : blackout" << endl;
+    }
+
+    buffer.Blackout();
+}
 
 void DmxOut1::refreshModuleChain() {
     if (debugChain) {
