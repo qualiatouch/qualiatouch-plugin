@@ -403,9 +403,15 @@ struct DmxAddressField : ui::TextField {
         placeholder = "0";
     }
 
-    void onSelectKey(const event::SelectKey& e) override {
-        if (e.action == GLFW_PRESS && e.key == GLFW_KEY_ENTER) {
-            int dmxAddress = std::stoi(text);
+    void onSelectKey(const event::SelectKey& event) override {
+        if (event.action == GLFW_PRESS && event.key == GLFW_KEY_ENTER) {
+            int dmxAddress;
+            try {
+                dmxAddress = std::stoi(text);
+            } catch (const std::exception& e) {
+                event.consume(this);
+                return;
+            }
             if (module) {
                 module->dmxAddress = dmxAddress;
                 module->dmxChannel = dmxAddress;
@@ -415,10 +421,10 @@ struct DmxAddressField : ui::TextField {
             if (overlay) {
                 overlay->requestDelete();
             }
-            e.consume(this);
+            event.consume(this);
         }
-        if (!e.getTarget()) {
-            TextField::onSelectKey(e);
+        if (!event.getTarget()) {
+            TextField::onSelectKey(event);
         }
     }
 };
