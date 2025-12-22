@@ -1,18 +1,10 @@
-#include "plugin.hpp"
-#include <curl/curl.h>
-#include <thread>
-#include <atomic>
-#include <iostream>
-#include <mutex>
-#include <queue>
-#include <vector>
-#include <functional>
+#include "PhyPhoxSensor.hpp"
+#include "PhyPhoxWidget.hpp"
 
-#include "json.hpp"
 using json = nlohmann::json;
 using namespace std;
 
-struct PhyPhoxWidget;
+//struct PhyPhoxWidget;
 
 struct RGB { int r, g, b; };
 
@@ -25,196 +17,27 @@ static size_t CurlWriteCallback(void* contents, size_t size, size_t nmemb, void*
     return size * nmemb;
 }
 
-struct PhyPhoxSensor : Module {
-	enum ParamId {
-		PARAMS_LEN
-	};
+PhyPhoxSensor::PhyPhoxSensor() {
+    config(PARAMS_LEN, INPUTS_LEN, NUM_OUTPUTS, LIGHTS_LEN);
 
-    enum InputId {
-		INPUTS_LEN
-	};
+    configOutput(OUT_X, "X");
+    configOutput(OUT_Y, "Y");
+    configOutput(OUT_Z, "Z");
 
-	enum LightId {
-        STATUS_LIGHT_RED,
-        STATUS_LIGHT_GREEN,
-        STATUS_LIGHT_BLUE,
-        LIGHTS_LEN
-	};
+    configLight(STATUS_LIGHT_RED, "Status");
+    configLight(STATUS_LIGHT_GREEN, "");
+    configLight(STATUS_LIGHT_BLUE, "");
 
-	enum OutputIds {
-		OUT_X,
-		OUT_Y,
-		OUT_Z,
-		NUM_OUTPUTS
-	};
+    curl_global_init(CURL_GLOBAL_DEFAULT);
 
-    std::atomic<bool> dataReady;
+    initUrl();
+    if (debug) {
+        cout << "url is " << url << endl;
+    }
 
-    std::string http = "http://";
-    std::string ip = "192.168.1.25:8080";
-    std::string queryParams = "";
-    std::string url;
-
-    enum Status {
-        INIT,
-        MEASURING,
-        NOT_MEASURING,
-        ERROR
-    };
-
-    enum Sensor {
-        SENSOR_MAG = 0,
-        SENSOR_ACC = 1,
-        SENSOR_LIGHT = 2,
-        SENSOR_TILT = 3,
-        SENSOR_SOUND = 4,
-        SENSOR_COLOR = 5
-    };
-
-    enum Coord {
-        COORD_X,
-        COORD_Y,
-        COORD_Z
-    };
-
-    Status status = INIT;
-    Sensor sensor = SENSOR_MAG;
-    int sensorModeParam = SENSOR_MAG;
-
-    enum VoltageMode {
-        UNIPOLAR = 0,
-        BIPOLAR = 1
-    };
-
-    VoltageMode voltageMode = UNIPOLAR;
-
-    std::string sensorModeParamJsonKey = "sensorModeParam";
-    std::string voltageModeJsonKey = "voltageMode";
-    std::string ipJsonKey = "ip";
-
-	float outX = 0.f;
-	float outY = 0.f;
-	float outZ = 0.f;
-
-    const float DEFAULT_MIN_X_MAG = -500.f;
-    const float DEFAULT_MAX_X_MAG = 1000.f;
-    const float DEFAULT_MIN_Y_MAG = -200.f;
-    const float DEFAULT_MAX_Y_MAG = 200.f;
-    const float DEFAULT_MIN_Z_MAG = -40.f;
-    const float DEFAULT_MAX_Z_MAG = 2500.f;
-
-    const float DEFAULT_MIN_X_ACC = -100.f;
-    const float DEFAULT_MAX_X_ACC = 100.f;
-    const float DEFAULT_MIN_Y_ACC = -100.f;
-    const float DEFAULT_MAX_Y_ACC = 100.f;
-    const float DEFAULT_MIN_Z_ACC = -100.f;
-    const float DEFAULT_MAX_Z_ACC = 100.f;
-
-    const float DEFAULT_MIN_X_LIGHT = 000.f;
-    const float DEFAULT_MAX_X_LIGHT = 500.f;
-    const float DEFAULT_MIN_Y_LIGHT = 000.f;
-    const float DEFAULT_MAX_Y_LIGHT = 500.f;
-    const float DEFAULT_MIN_Z_LIGHT = 000.f;
-    const float DEFAULT_MAX_Z_LIGHT = 500.f;
-
-    const float DEFAULT_MIN_X_TILT = -180.f;
-    const float DEFAULT_MAX_X_TILT = 180.f;
-    const float DEFAULT_MIN_Y_TILT = -180.f;
-    const float DEFAULT_MAX_Y_TILT = 180.f;
-    const float DEFAULT_MIN_Z_TILT = -180.f;
-    const float DEFAULT_MAX_Z_TILT = 180.f;
-
-    const float DEFAULT_MIN_X_SOUND = -50.f;
-    const float DEFAULT_MAX_X_SOUND = -10.f;
-    const float DEFAULT_MIN_Y_SOUND = -50.f;
-    const float DEFAULT_MAX_Y_SOUND = -10.f;
-    const float DEFAULT_MIN_Z_SOUND = -50.f;
-    const float DEFAULT_MAX_Z_SOUND = -10.f;
-
-    const float DEFAULT_MIN_X_COLOR = 0;
-    const float DEFAULT_MAX_X_COLOR = 255;
-    const float DEFAULT_MIN_Y_COLOR = 0;
-    const float DEFAULT_MAX_Y_COLOR = 255;
-    const float DEFAULT_MIN_Z_COLOR = 0;
-    const float DEFAULT_MAX_Z_COLOR = 255;
-
-    float sensorMinX = DEFAULT_MIN_X_MAG;
-    float sensorMaxX = DEFAULT_MAX_X_MAG;
-    float sensorMinY = DEFAULT_MIN_Y_MAG;
-    float sensorMaxY = DEFAULT_MAX_Y_MAG;
-    float sensorMinZ = DEFAULT_MIN_Z_MAG;
-    float sensorMaxZ = DEFAULT_MAX_Z_MAG;
-
-	float timeSinceLastRequest = 0.f;
-	bool isFetching = false;
-
-    bool debug = false;
-
-	std::atomic<int> nextRequestId;
-	int nextExpectedId = 0;
-	
-	struct OrderedResult {
-		int requestId;
-        bool isMeasuring;
-        bool hasError;
-		float resultX;
-		float resultY;
-		float resultZ;
-	};	
-	
-	std::mutex resultMutex;
-	std::priority_queue<
-		OrderedResult,
-		std::vector<OrderedResult>,
-		std::function<bool(const OrderedResult&, const OrderedResult&)>
-	> resultQueue{[](const OrderedResult& a, const OrderedResult& b) {
-		return a.requestId > b.requestId;  // Min-heap
-	}};
-
-    PhyPhoxWidget* widget;
-
-	PhyPhoxSensor() {
-		config(PARAMS_LEN, INPUTS_LEN, NUM_OUTPUTS, LIGHTS_LEN);
-
-        configOutput(OUT_X, "X");
-        configOutput(OUT_Y, "Y");
-        configOutput(OUT_Z, "Z");
-
-        configLight(STATUS_LIGHT_RED, "Status");
-        configLight(STATUS_LIGHT_GREEN, "");
-        configLight(STATUS_LIGHT_BLUE, "");
-
-        curl_global_init(CURL_GLOBAL_DEFAULT);
-
-        initUrl();
-        if (debug) {
-            cout << "url is " << url << endl;
-        }
-
-		this->dataReady = false;
-		this->nextRequestId = 0;
-	}
-
-    void setWidget(PhyPhoxWidget* widgetParam);
-
-    void initUrl();
-    void initLimits();
-    void initSensor();
-
-    void setIpAddress(std::string newIp);
-
-    std::string getQueryParams(Sensor sensor);
-
-    float calculateOutputVoltage(float rawValue, float rawMin, float rawMax);
-
-    void process(const ProcessArgs& args) override;
-
-    json_t* dataToJson() override;
-    void dataFromJson(json_t* rootJson) override;
-    Status getStatus(bool hasError, bool isMeasuring);
-    void updateLedColor();
-    void setStatusLedColor(float red, float green, float blue);
-};
+    this->dataReady = false;
+    this->nextRequestId = 0;
+}
 
 void PhyPhoxSensor::setWidget(PhyPhoxWidget* widgetParam) {
     widget = widgetParam;
@@ -620,130 +443,6 @@ void PhyPhoxSensor::dataFromJson(json_t* rootJson)  {
     }
 }
 
-struct IpAddressField : ui::TextField {
-    PhyPhoxSensor* module;
-
-    IpAddressField(PhyPhoxSensor* moduleParam) {
-        module = moduleParam;
-        box.size.x = 200;
-        placeholder = "192.168.1.25:8080";
-    }
-
-    void onSelectKey(const event::SelectKey& e) override {
-        if (e.action == GLFW_PRESS && e.key == GLFW_KEY_ENTER) {
-            std::string ip = text;
-            if (module) {
-                module->setIpAddress(ip);
-            }
-            ui::MenuOverlay* overlay = getAncestorOfType<ui::MenuOverlay>();
-            if (overlay) {
-                overlay->requestDelete();
-            }
-            e.consume(this);
-        }
-        if (!e.getTarget()) {
-            TextField::onSelectKey(e);
-        }
-    }
-};
-
-struct IpAddressMenuItem : ui::MenuItem {
-    PhyPhoxSensor* module;
-
-    Menu* createChildMenu() override {
-        Menu* menu = new Menu;
-
-        IpAddressField* ipField = new IpAddressField(module);
-        ipField->text = module->ip;
-        menu->addChild(ipField);
-
-        return menu;
-    }
-};
-
-struct SensorTypeWidget : Widget {
-	void draw(const DrawArgs& args) override {
-        std::string fontPath = asset::system("res/fonts/ShareTechMono-Regular.ttf");
-        std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
-
-	    if (font) {
-		    nvgFontFaceId(args.vg, font->handle);
-            nvgFontSize(args.vg, 13.0);
-            nvgTextAlign(args.vg, NVG_ALIGN_LEFT | NVG_ALIGN_BASELINE);
-            std::string text = "";
-            nvgText(args.vg, 0.0, 10.0, text.c_str(), NULL);
-        } else {
-            cerr << "failed to load font " << fontPath << endl;
-        }
-    }
-};
-
-struct PhyPhoxWidget : ModuleWidget {
-    PhyPhoxSensor* module;
-    FramebufferWidget* frameBufferWidget;
-    SensorTypeWidget* sensorTypeWidget;
-
-	PhyPhoxWidget(PhyPhoxSensor* moduleParam) {
-        module = moduleParam;
-		setModule(module);
-
-		setPanel(createPanel(asset::plugin(pluginInstance, "res/phyphox-sensor.svg")));
-
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
-		addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-		addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
-
-        addChild(createLightCentered<SmallLight<RedGreenBlueLight>>(mm2px(Vec(7.625, 42.5)), module, PhyPhoxSensor::STATUS_LIGHT_RED));
-
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 52.5)), module, PhyPhoxSensor::OUT_X));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 72.5)), module, PhyPhoxSensor::OUT_Y));
-		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 92.5)), module, PhyPhoxSensor::OUT_Z));
-
-        frameBufferWidget = new FramebufferWidget;
-        addChild(frameBufferWidget);
-
-        sensorTypeWidget = createWidget<SensorTypeWidget>(Vec(13.0, 120.0));
-        sensorTypeWidget->setSize(Vec(100, 100));
-        frameBufferWidget->addChild(sensorTypeWidget);
-	}
-
-    void appendContextMenu(Menu* menu) override {
-        menu->addChild(new MenuSeparator);
-        menu->addChild(createMenuLabel("Sensor settings (PhyPhox app)"));
-
-        menu->addChild(createIndexPtrSubmenuItem("Sensor type",
-            {
-                "Magnetic",
-                "Acceleration",
-                "Light",
-                "Tilt",
-                "Sound intensity",
-                "Color (HSV converted to RGB)"
-            },
-            &module->sensorModeParam
-        ));
-
-        menu->addChild(createIndexPtrSubmenuItem("Output voltage mode",
-            {
-                "Unipolar (0V => +10V)",
-                "Bipolar (-5V => +5V)",
-            },
-            &module->voltageMode
-        ));
-
-        IpAddressMenuItem* ipItem = new IpAddressMenuItem;
-        ipItem->text = "IP & port";
-        ipItem->rightText = module->ip + " " + RIGHT_ARROW;
-        ipItem->module = module;
-        menu->addChild(ipItem);
-
-        menu->addChild(rack::createBoolPtrMenuItem("Debug Mode", "", &module->debug));
-    }
-
-    void setDirty();
-};
-
 void PhyPhoxSensor::initSensor() {
     initUrl();
     initLimits();
@@ -788,10 +487,6 @@ void PhyPhoxSensor::process(const ProcessArgs& args) {
 		outputs[OUT_X].setVoltage(outX);
 		outputs[OUT_Y].setVoltage(outY);
 		outputs[OUT_Z].setVoltage(outZ);
-}
-
-void PhyPhoxWidget::setDirty() {
-    frameBufferWidget->setDirty();
 }
 
 Model* modelPhyPhoxSensor = createModel<PhyPhoxSensor, PhyPhoxWidget>("PhyPhoxSensor");
