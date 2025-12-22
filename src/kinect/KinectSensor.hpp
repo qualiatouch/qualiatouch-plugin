@@ -1,5 +1,6 @@
 #pragma once
 #include "../plugin.hpp"
+#include "KinectSensorWidget.hpp"
 #include "HandTracker.hpp"
 #include <thread>
 #include <atomic>
