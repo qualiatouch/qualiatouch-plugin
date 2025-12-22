@@ -33,7 +33,7 @@ Menu* IpAddressMenuItem::createChildMenu() {
     return menu;
 }
 
-void IpAddressMenuItem::draw(const DrawArgs& args) {
+void SensorTypeWidget::draw(const DrawArgs& args) {
     std::string fontPath = asset::system("res/fonts/ShareTechMono-Regular.ttf");
     std::shared_ptr<Font> font = APP->window->loadFont(fontPath);
 

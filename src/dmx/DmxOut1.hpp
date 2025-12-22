@@ -80,7 +80,7 @@ struct DmxOut1 : Module {
 
     DmxOut1();
 
-    void onAdd() override;
+    // void onAdd() override;
     void refreshModuleChain();
     void onExpanderChange(const ExpanderChangeEvent &e) override;
     void toggleUseOwnDmxAddress();

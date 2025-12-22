@@ -20,7 +20,7 @@ struct IpAddressMenuItem : ui::MenuItem {
     PhyPhoxSensor* module;
 
     Menu* createChildMenu() override;
-    void draw(const DrawArgs& args) override;
+    //void draw(const DrawArgs& args) override;
 };
 
 struct SensorTypeWidget : Widget {
