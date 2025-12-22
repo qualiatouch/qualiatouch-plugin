@@ -1,7 +1,9 @@
 #include "KinectSensor.hpp"
-//#include "HandTracker.hpp"
+#include "../util/utils.hpp"
 
 using namespace std;
+
+using namespace utils;
 
 const float alpha = 0.9f;
 
@@ -14,23 +16,6 @@ float lowerThreshold = 40 * 10.f;
 float upperThreshold = 45 * 10.f;
 
 bool thresholdPassed = false;
-
-static float scaleAndClamp(
-    float rawValue,
-    float rawMin, float rawMax,
-    float outMin, float outMax,
-    bool invert = false
-) {
-    float normalized = (rawValue - rawMin) / (rawMax - rawMin);
-
-    float scaled = normalized * (outMax - outMin) + outMin;
-
-    if (invert) {
-        scaled = outMax - (scaled - outMin);
-    }
-
-    return clamp(scaled, outMin, outMax);
-}
 
 KinectSensor::KinectSensor() {
     config(NUM_PARAMS, 0, NUM_OUTPUTS);

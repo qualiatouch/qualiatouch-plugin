@@ -1,10 +1,10 @@
 #include "PhyPhoxSensor.hpp"
 #include "PhyPhoxWidget.hpp"
+#include "../util/utils.hpp"
 
 using json = nlohmann::json;
 using namespace std;
-
-//struct PhyPhoxWidget;
+using namespace utils;
 
 struct RGB { int r, g, b; };
 
@@ -249,21 +249,6 @@ static SensorValues getValue(const json j, const PhyPhoxSensor::Sensor sensor) {
     };
 
     return v;
-}
-
-static float scaleAndClamp(
-    float rawValue,
-    float rawMin, float rawMax,
-    float outMin, float outMax
-) {
-    // 1. Normalize input to 0–1 range
-    float normalized = (rawValue - rawMin) / (rawMax - rawMin);
-
-    // 2. Scale to output range
-    float scaled = normalized * (outMax - outMin) + outMin;
-
-    // 3. Clamp to ensure bounds
-    return clamp(scaled, outMin, outMax);
 }
 
 float PhyPhoxSensor::calculateOutputVoltage(float rawValue, float rawMin, float rawMax) {
