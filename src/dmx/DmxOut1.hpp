@@ -1,5 +1,6 @@
 #pragma once
 #include "../plugin.hpp"
+#include "DmxOut1Widget.hpp"
 #include <thread>
 #include <atomic>
 #include <iostream>
