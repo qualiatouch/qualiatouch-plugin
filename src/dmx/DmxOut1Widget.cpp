@@ -48,7 +48,7 @@ void DmxOut1Widget::appendContextMenu(Menu* menu) {
         menu->addChild(new MenuSeparator);
         menu->addChild(createMenuLabel("Debug info"));
         menu->addChild(createMenuLabel("Id " + std::to_string(module->getId())));
-        menu->addChild(createMenuLabel("Master " + std::to_string(module->isMaster)));
+        menu->addChild(createMenuLabel("Master " + std::to_string(module->isMaster())));
         menu->addChild(createMenuLabel("Chain size " + std::to_string(module->moduleChainSize)));
         menu->addChild(createMenuLabel("Channel " + std::to_string(module->dmxChannel)));
         menu->addChild(createMenuLabel("Use own address " + std::to_string(module->useOwnDmxAddress)));
