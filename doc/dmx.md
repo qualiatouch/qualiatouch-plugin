@@ -1,0 +1,72 @@
+# DMX modules
+
+## Important
+
+🚧 THOSE MODULES ARE STILL EXPERIMENTAL 🚧
+
+There is no guarantee of any kind. Use at your own risk.
+
+For now, DMX modules can only work by being put together side-to-side (as expanders), as one group. If you have two groups of DMX modules, _at least_ one of them will not work correctly.
+
+## Requirements
+
+- An USB -> DMX OUT adapter
+  - I'm using the ENTTEC Open DMX USB adapter. I'm saying that only as an example of what works, I'm not affiliated with ENTTEC in any way.
+- Any DMX fixture, connected to the adapter by DMX cables. I mean, that's the purpose of the module, so if you're reading this you probably have at least one lighting fixture laying around in your field of view which you want to be controlled.
+- The drivers / framework that are supposed to work with your adapter.
+  - I'm using [OLA](https://www.openlighting.org/ola/) (Open Lighting Architecture) on Linux.
+- Some hope that your computer will allow you to make it all work.
+
+## Starting
+
+The DMX adapter should be plugged in, and the OLA framework running, before starting VCV Rack.
+
+## Basics
+
+Start with one DMX module. It has an input port and a blackout button.
+
+<image>
+
+You can configure the DMX address of the module by right-clicking it and modifying the "DMX Address" field. For now, the DMX modules will only send data to universe 1.
+
+The module will:
+  - take a 0-10V CV signal as an input
+  - transform it to a value between 0 and 255
+  - emit a DMX signal of 256 channels through the adapter to the fixtures that are connected to it
+  - the selected address with contain the calculated value, the rest of the channels will have the value 0.
+
+The module displays its DMX channel under the value input.
+
+## Chaining modules
+
+One handy thing with the DMX protocol is that lighting fixtures often use several consecutive channels, starting at their assigned DMX address, to control separate parameters of the same fixture. The DMX module is conceived for that use and allows you to send values to consecutive DMX channels, by chaining several modules together:
+
+<image>
+
+The base address will be the address assigned to the first (leftmost) module. Each additional module will have a channel of +1 relative to the previous module.
+
+As mentioned above, currently only one group can work correctly, so all your DMX modules have to be side-to-side on the rack, and therefore they will send to consecutive channels. However, if you need to send DMX signals to separate addresses, you can assign an address to one of the chained modules by checking "Use own DMX address" in its menu, and assigning an address to it, as for the first module. The modules on the right side of this module will follow its address incrementally.
+
+<image>
+
+Each module displays the DMX channel it's sending data to ; if the module uses its own address (not depending on the other modules), the address display is emphasized.
+
+## Blackout
+
+On each module there is a blackout button, and a blackout input. When the blackout button is pushed (or when the blackout input receives a gate or trigger signal), the module sends a blackout signal (0 on every channel) through the DMX adapter, and puts the module in "blackout triggered" state. In that state, a red LED lights up on the module.
+
+When a blackout has been triggered on a module, it stays in the "blackout triggered" state, and it prevents sending any other signal to the DMX adapter. If several modules are chained, none of them will send data.
+
+When you've put the signals in an acceptable state and are ready to start again, just uncheck the "Blackout triggered" item in the right-click menu.
+
+## Why a DMX module for VCV Rack?
+
+A bunch of rich and complex computer software already exist for commanding DMX lighting. It can be synchronized with music and programmed to do basically anything. I'm not inventing anything actually new here.
+
+What i wanted to do is giving a way for people to command DMX lighting specifically from a modular synthetizer software. People who create music via modular synth deserve to be able to synchronize their lighting system too.
+
+## Show your work!
+
+If you use those modules, please send me a video of what you've realized (qualiatouch@proton.me), i'm eager to see what people will do with them!
+
+
