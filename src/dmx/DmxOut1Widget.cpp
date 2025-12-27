@@ -8,8 +8,8 @@ DmxOut1Widget::DmxOut1Widget(DmxOut1* moduleParam) {
 
     addInput(createInputCentered<PJ301MPort>(mm2px(Vec(7.625, 42.5)), module, DmxOut1::INPUT_CHANNEL_0));
     addParam(createParamCentered<CKD6>(mm2px(Vec(7.625, 90.0)), module, DmxOut1::BLACKOUT_BUTTON));
-    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(7.625, 107.5)), module, DmxOut1::INPUT_BLACKOUT));
     addChild(createLightCentered<SmallLight<RedLight>>(mm2px(Vec(7.625, 100.0)), module, DmxOut1::BLACKOUT_LIGHT));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(7.625, 110.0)), module, DmxOut1::INPUT_BLACKOUT));
 
     addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
     addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
