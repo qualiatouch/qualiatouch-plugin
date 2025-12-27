@@ -42,6 +42,7 @@ struct DmxOut1 : Module {
 
     std::string useOwnDmxAddressJsonKey = "useOwnDmxAddress";
     std::string dmxAddressJsonKey = "dmxAddress";
+    std::string dmxUniverseJsonKey = "dmxUniverse";
 
     // module params
 	float timeSinceLastLoop = 0.f;

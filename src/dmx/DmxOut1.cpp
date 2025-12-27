@@ -242,6 +242,7 @@ json_t* DmxOut1::dataToJson() {
     json_t* rootJson = json_object();
     json_object_set_new(rootJson, dmxAddressJsonKey.c_str(), json_integer(dmxAddress));
     json_object_set_new(rootJson, useOwnDmxAddressJsonKey.c_str(), json_boolean(useOwnDmxAddress));
+    json_object_set_new(rootJson, dmxUniverseJsonKey.c_str(), json_integer(getDmxUniverse()));
 
     return rootJson;
 }
@@ -261,6 +262,11 @@ void DmxOut1::dataFromJson(json_t* rootJson)  {
     json_t* dmxAddressParamJson = json_object_get(rootJson, dmxAddressJsonKey.c_str());
     if (dmxAddressParamJson) {
         dmxAddress = json_integer_value(dmxAddressParamJson);
+    }
+
+    json_t* dmxUniverseParamJson = json_object_get(rootJson, dmxUniverseJsonKey.c_str());
+    if (dmxUniverseParamJson) {
+        DmxRegistry::instance().setDmxUniverse(json_integer_value(dmxUniverseParamJson));
     }
 }
 
