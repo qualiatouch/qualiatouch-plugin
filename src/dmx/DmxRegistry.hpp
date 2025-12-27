@@ -14,13 +14,14 @@ private:
 
     ola::DmxBuffer buffer;
 
-    std::unique_ptr<ola::client::StreamingClient> ola_client;
+    std::unique_ptr<ola::client::StreamingClient> ola_client = nullptr;
 
     unsigned int dmxUniverse = 1;
 
     bool debug = false;
 
     DmxRegistry();
+    void initOla();
 
 public:
     static DmxRegistry& instance();

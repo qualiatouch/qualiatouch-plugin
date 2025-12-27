@@ -1,7 +1,15 @@
 #include "DmxRegistry.hpp"
 
 DmxRegistry::DmxRegistry() {
-    cout << "DmxRegistry()" << endl;
+
+}
+
+DmxRegistry& DmxRegistry::instance() {
+    static DmxRegistry registry;
+    return registry;
+}
+
+void DmxRegistry::initOla() {
     if (debug) {
         cout << "OLA : init logging" << endl;
     }
@@ -23,17 +31,16 @@ DmxRegistry::DmxRegistry() {
         cout << "OLA : blackout" << endl;
     }
 
+    buffer.Blackout();
     if (!ola_client->SendDmx(dmxUniverse, buffer)) {
         cerr << "Sending DMX blackout failed" << endl;
     }
 }
 
-DmxRegistry& DmxRegistry::instance() {
-    static DmxRegistry registry;
-    return registry;
-}
-
 void DmxRegistry::registerModule(DmxOut1* module) {
+    if (ola_client == nullptr) {
+        initOla();
+    }
     modules.push_back(module);
 }
 
@@ -42,6 +49,23 @@ void DmxRegistry::unregisterModule(DmxOut1* module) {
         std::remove(modules.begin(), modules.end(), module),
         modules.end()
     );
+    if (modules.size() == 0) {
+        if (debug) {
+            cout << "No DMX module" << endl;
+            cout << "OLA : blackout" << endl;
+        }
+
+        buffer.Blackout();
+        if (!ola_client->SendDmx(dmxUniverse, buffer)) {
+            cerr << "Sending DMX blackout failed" << endl;
+        }
+
+        if (debug) {
+            cout << "stopping OLA client" << endl;
+        }
+        ola_client->Stop();
+        ola_client = nullptr;
+    }
 }
 
 bool DmxRegistry::isMaster(int64_t id) {
