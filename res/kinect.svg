@@ -26,8 +26,8 @@
      units="mm"
      width="60.96mm"
      inkscape:zoom="2"
-     inkscape:cx="66"
-     inkscape:cy="197"
+     inkscape:cx="8"
+     inkscape:cy="128.5"
      inkscape:window-width="1600"
      inkscape:window-height="838"
      inkscape:window-x="0"
@@ -40,6 +40,13 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1">
+    <rect
+       style="fill:#272727;fill-opacity:1;stroke-width:0.264999;paint-order:markers stroke fill"
+       id="rect854"
+       width="15.238295"
+       height="128.49759"
+       x="0.0014383653"
+       y="0.0022663272" />
     <g
        aria-label="OUT"
        id="text15318-6"

@@ -8,7 +8,7 @@
    version="1.1"
    id="svg5"
    inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
-   sodipodi:docname="dmx-1-out.svg"
+   sodipodi:docname="dmx-out-1.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -25,9 +25,9 @@
      showgrid="false"
      units="mm"
      width="60.96mm"
-     inkscape:zoom="0.7465348"
-     inkscape:cx="-703.2492"
-     inkscape:cy="178.15646"
+     inkscape:zoom="2"
+     inkscape:cx="89.5"
+     inkscape:cy="81.5"
      inkscape:window-width="1600"
      inkscape:window-height="838"
      inkscape:window-x="0"
@@ -40,6 +40,13 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1">
+    <rect
+       style="fill:#272727;fill-opacity:1;stroke-width:0.264999;paint-order:markers stroke fill"
+       id="rect854"
+       width="15.239599"
+       height="128.50005"
+       x="0.00051915261"
+       y="0.00017146855" />
     <g
        aria-label="DMX"
        id="text4064"
