@@ -26,10 +26,14 @@ DmxOut1Widget::DmxOut1Widget(DmxOut1* moduleParam) {
 
 void DmxOut1Widget::appendContextMenu(Menu* menu) {
     menu->addChild(new MenuSeparator);
-    menu->addChild(createMenuLabel("DMX settings"));
+    menu->addChild(createMenuLabel("DMX module settings"));
 
     UseOwnDmxAddressItem* useOwnDmxAddressItem = new UseOwnDmxAddressItem(module);
     useOwnDmxAddressItem->text = "Use own DMX address";
+
+    if (!module->isLeftModuleDmx()) {
+        useOwnDmxAddressItem->disabled = true;
+    }
     menu->addChild(useOwnDmxAddressItem);
 
     if (module->useOwnDmxAddress) {
@@ -43,12 +47,21 @@ void DmxOut1Widget::appendContextMenu(Menu* menu) {
     menu->addChild(rack::createBoolPtrMenuItem("Blackout triggered", "", &module->blackoutTriggered));
     menu->addChild(rack::createBoolPtrMenuItem("Debug", "", &module->debug));
 
+    menu->addChild(new MenuSeparator);
+    menu->addChild(createMenuLabel("DMX universe settings"));
+    menu->addChild(createMenuLabel(" (common to all modules)"));
+    DmxUniverseMenuItem* universeItem = new DmxUniverseMenuItem;
+    universeItem->text = "DMX universe";
+    universeItem->rightText = std::to_string(module->getDmxUniverse()) + " " + RIGHT_ARROW;
+    universeItem->module = module;
+    menu->addChild(universeItem);
+
     // debug info
     if (module->debug) {
         menu->addChild(new MenuSeparator);
         menu->addChild(createMenuLabel("Debug info"));
         menu->addChild(createMenuLabel("Id " + std::to_string(module->getId())));
-        menu->addChild(createMenuLabel("Master " + std::to_string(module->isMaster)));
+        menu->addChild(createMenuLabel("Master " + std::to_string(module->isMaster())));
         menu->addChild(createMenuLabel("Chain size " + std::to_string(module->moduleChainSize)));
         menu->addChild(createMenuLabel("Channel " + std::to_string(module->dmxChannel)));
         menu->addChild(createMenuLabel("Use own address " + std::to_string(module->useOwnDmxAddress)));
@@ -106,6 +119,45 @@ Menu* DmxAddressMenuItem::createChildMenu() {
     DmxAddressField* addressField = new DmxAddressField(module);
     addressField->text = std::to_string(module->dmxAddress);
     menu->addChild(addressField);
+
+    return menu;
+}
+
+DmxUniverseField::DmxUniverseField(DmxOut1* moduleParam) {
+    module = moduleParam;
+    box.size.x = 100;
+    placeholder = "1";
+}
+
+void DmxUniverseField::onSelectKey(const event::SelectKey& event) {
+    if (event.action == GLFW_PRESS && event.key == GLFW_KEY_ENTER) {
+        int dmxUniverse;
+        try {
+            dmxUniverse = std::stoi(text);
+        } catch (const std::exception& e) {
+            event.consume(this);
+            return;
+        }
+        if (module) {
+            module->setDmxUniverse(dmxUniverse);
+        }
+        ui::MenuOverlay* overlay = getAncestorOfType<ui::MenuOverlay>();
+        if (overlay) {
+            overlay->requestDelete();
+        }
+        event.consume(this);
+    }
+    if (!event.getTarget()) {
+        TextField::onSelectKey(event);
+    }
+}
+
+Menu* DmxUniverseMenuItem::createChildMenu() {
+    Menu* menu = new Menu;
+
+    DmxUniverseField* universeField = new DmxUniverseField(module);
+    universeField->text = std::to_string(module->getDmxUniverse());
+    menu->addChild(universeField);
 
     return menu;
 }

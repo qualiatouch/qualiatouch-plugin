@@ -1,4 +1,5 @@
 #include "DmxOut1.hpp"
+#include "DmxRegistry.hpp"
 
 using namespace std;
 
@@ -16,32 +17,28 @@ DmxOut1::DmxOut1() {
     configInput(INPUT_CHANNEL_0, "channel 0");
     configInput(INPUT_BLACKOUT, "Blackout (Trigger or gate to blackout)");
     configLight(BLACKOUT_LIGHT, "Blackout triggered - deactivate it in the menu");
+}
 
-    // # init OLA / DMX
+bool DmxOut1::isMaster() {
+    return DmxRegistry::instance().isMaster(getId());
+}
 
-    if (debug) {
-        cout << "OLA : init logging" << endl;
-    }
-    ola::InitLogging(ola::OLA_LOG_WARN, ola::OLA_LOG_STDERR);
-    
+void DmxOut1::onAdd() {
+    recalculateChain = true;
+    DmxRegistry::instance().registerModule(this);
+}
 
-    if (debug) {
-        cout << "OLA : init client" << endl;
-    }
-    ola_client = std::unique_ptr<ola::client::StreamingClient>(new ola::client::StreamingClient());
+void DmxOut1::onRemove() {
+    DmxRegistry::instance().unregisterModule(this);
+}
 
-    if (debug) {
-        cout << "OLA : setup client" << endl;
-    }
-    if (!ola_client->Setup()) {
-        std::cerr << "Setup failed" << endl;
-    }
-
-    if (debug) {
-        cout << "OLA : blackout" << endl;
+bool DmxOut1::isLeftModuleDmx() {
+    Module* leftModule = getLeftExpander().module;
+    if (leftModule == nullptr) {
+        return false;
     }
 
-    buffer.Blackout();
+    return isSameModel(leftModule);
 }
 
 void DmxOut1::refreshModuleChain() {
@@ -49,13 +46,11 @@ void DmxOut1::refreshModuleChain() {
         cout << "module " << getId() << " in refreshModuleChain()" << endl;
     }
     recalculateChain = false;
-    isMaster = false;
     moduleChain.clear();
 
-    // identification du master + déclenchement de refreshModuleChain sur le module à gauche
+    // identification du premier module de la chaîne / sinon déclenchement de refreshModuleChain sur le module à gauche
     Module* leftModule = getLeftExpander().module;
     if (leftModule == nullptr || false == isSameModel(leftModule)) {
-        isMaster = true;
         useOwnDmxAddress = true;
         dmxAddress = dmxChannel;
         if (debugChain) {
@@ -227,51 +222,27 @@ void DmxOut1::process(const ProcessArgs& args) {
         }
     }
 
-    if (false == isMaster) {
-        // todo improve loop management
-        loop++;
-        timeSinceLastLoop = 0.0f;
-        return;
-    }
-
-    for (int i = 0; i < moduleChainSize; i++) {
-        DmxOut1* m = moduleChain.at(i);
-        if (m->blackoutTriggered) {
-            if (debug) {
-                cout << "BLACKOUT triggered on module " << i << " - sending blackout" << endl;
-            }
-            buffer.Blackout();
-            break;
-        }
-
-        if (debug) {
-            cout << "   setting channel " << m->dmxChannel << " to DMX value " << m->dmxValue << endl;
-        }
-        buffer.SetChannel(m->dmxChannel, m->dmxValue);
-    }
-
-    if (debug) {
-        cout << "sending DMX : " << buffer.ToString();
-    }
-
-    if (!ola_client->SendDmx(dmxUniverse, buffer)) {
-        if (debug) {
-            cout << "Sending DMX failed" << endl;
-        }
-    } else {
-        if (debug) {
-            cout << "sent" << endl;
-        }
+    if (isMaster()) {
+        DmxRegistry::instance().trigger(getId());
     }
 
     timeSinceLastLoop = 0.0f;
     loop++;
 }
 
+int DmxOut1::getDmxUniverse() {
+    return DmxRegistry::instance().getDmxUniverse();
+}
+
+void DmxOut1::setDmxUniverse(int universe) {
+    DmxRegistry::instance().setDmxUniverse(universe);
+}
+
 json_t* DmxOut1::dataToJson() {
     json_t* rootJson = json_object();
     json_object_set_new(rootJson, dmxAddressJsonKey.c_str(), json_integer(dmxAddress));
     json_object_set_new(rootJson, useOwnDmxAddressJsonKey.c_str(), json_boolean(useOwnDmxAddress));
+    json_object_set_new(rootJson, dmxUniverseJsonKey.c_str(), json_integer(getDmxUniverse()));
 
     return rootJson;
 }
@@ -291,6 +262,11 @@ void DmxOut1::dataFromJson(json_t* rootJson)  {
     json_t* dmxAddressParamJson = json_object_get(rootJson, dmxAddressJsonKey.c_str());
     if (dmxAddressParamJson) {
         dmxAddress = json_integer_value(dmxAddressParamJson);
+    }
+
+    json_t* dmxUniverseParamJson = json_object_get(rootJson, dmxUniverseJsonKey.c_str());
+    if (dmxUniverseParamJson) {
+        DmxRegistry::instance().setDmxUniverse(json_integer_value(dmxUniverseParamJson));
     }
 }
 

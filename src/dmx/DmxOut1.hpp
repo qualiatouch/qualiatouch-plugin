@@ -42,6 +42,7 @@ struct DmxOut1 : Module {
 
     std::string useOwnDmxAddressJsonKey = "useOwnDmxAddress";
     std::string dmxAddressJsonKey = "dmxAddress";
+    std::string dmxUniverseJsonKey = "dmxUniverse";
 
     // module params
 	float timeSinceLastLoop = 0.f;
@@ -51,7 +52,6 @@ struct DmxOut1 : Module {
     float sampleRate = 0.1f;
 
     // module chain
-    bool isMaster = false;
     std::vector<DmxOut1*> moduleChain;
     int moduleIndex = 0;
     int moduleChainSize = 0;
@@ -69,24 +69,29 @@ struct DmxOut1 : Module {
     bool blackoutTriggered = false;
 
     // DMX
-    unsigned int dmxUniverse = 1;
     bool useOwnDmxAddress = false;
     unsigned int dmxAddress = 1;
     unsigned int dmxChannel = 1;
     bool updateDmxChannelDisplayWidget = false;
 
-    ola::DmxBuffer buffer;
-
-    std::unique_ptr<ola::client::StreamingClient> ola_client;
-
     DmxOut1();
 
-    // void onAdd() override;
+    bool isMaster();
+
+    void onAdd() override;
+    void onRemove() override;
+    bool isLeftModuleDmx();
     void refreshModuleChain();
     void onExpanderChange(const ExpanderChangeEvent &e) override;
     void toggleUseOwnDmxAddress();
+
     void process(const ProcessArgs& arg) override;
+
     json_t* dataToJson() override;
     void dataFromJson(json_t* rootJson) override;
+
     bool isSameModel(Module* otherModule);
+
+    int getDmxUniverse();
+    void setDmxUniverse(int universe);
 };
