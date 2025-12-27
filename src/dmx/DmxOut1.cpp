@@ -24,7 +24,7 @@ bool DmxOut1::isMaster() {
 }
 
 void DmxOut1::onAdd() {
-    refreshModuleChain();
+    recalculateChain = true;
     DmxRegistry::instance().registerModule(this);
 }
 
