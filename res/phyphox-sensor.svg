@@ -25,9 +25,9 @@
      showgrid="false"
      units="mm"
      width="60.96mm"
-     inkscape:zoom="2"
-     inkscape:cx="30.5"
-     inkscape:cy="149"
+     inkscape:zoom="4"
+     inkscape:cx="-4.5"
+     inkscape:cy="235"
      inkscape:window-width="1600"
      inkscape:window-height="838"
      inkscape:window-x="0"
@@ -145,5 +145,32 @@
        cx="7.625"
        cy="92.5"
        r="2.5" />
+    <g
+       aria-label="X"
+       id="text3111"
+       style="font-size:3.88056px;line-height:1.25;stroke-width:0.264583"
+       transform="translate(0,1.0583333)">
+      <path
+         d="m 6.5380666,56.279047 h 0.4111726 l 0.7029725,1.051617 0.7067622,-1.051617 h 0.4111726 l -0.9095063,1.358575 0.97014,1.470368 H 8.4196076 L 7.6237897,57.904789 6.8222873,59.10799 H 6.4092199 l 1.0099309,-1.510159 z"
+         id="path14673" />
+    </g>
+    <g
+       aria-label="Y"
+       id="text9109"
+       style="font-size:3.88056px;line-height:1.25;stroke-width:0.264583"
+       transform="translate(0,1.0583333)">
+      <path
+         d="m 6.4272205,76.287397 h 0.4111726 l 0.7844491,1.16341 0.7787647,-1.16341 h 0.4111726 l -1.0004568,1.481738 v 1.347206 H 7.4276773 v -1.347206 z"
+         id="path14694" />
+    </g>
+    <g
+       aria-label="Z"
+       id="text12017"
+       style="font-size:3.88056px;line-height:1.25;stroke-width:0.264583"
+       transform="translate(0,1.0583333)">
+      <path
+         d="m 6.5086969,96.823278 h 2.2226059 v 0.2918 l -1.7886956,2.215027 h 1.8322761 v 0.322117 H 6.4651164 v -0.2918 L 8.253812,97.145395 H 6.5086969 Z"
+         id="path14715" />
+    </g>
   </g>
 </svg>
