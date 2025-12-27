@@ -61,7 +61,8 @@ struct PhyPhoxSensor : Module {
         SENSOR_LIGHT = 2,
         SENSOR_TILT = 3,
         SENSOR_SOUND = 4,
-        SENSOR_COLOR = 5
+        SENSOR_COLOR = 5,
+        SENSOR_GYR = 6
     };
 
     enum Coord {
@@ -130,6 +131,13 @@ struct PhyPhoxSensor : Module {
     const float DEFAULT_MAX_Y_COLOR = 255;
     const float DEFAULT_MIN_Z_COLOR = 0;
     const float DEFAULT_MAX_Z_COLOR = 255;
+
+    const float DEFAULT_MIN_X_GYR = -20;
+    const float DEFAULT_MAX_X_GYR = 20;
+    const float DEFAULT_MIN_Y_GYR = -20;
+    const float DEFAULT_MAX_Y_GYR = 20;
+    const float DEFAULT_MIN_Z_GYR = -20;
+    const float DEFAULT_MAX_Z_GYR = 20;
 
     float sensorMinX = DEFAULT_MIN_X_MAG;
     float sensorMaxX = DEFAULT_MAX_X_MAG;

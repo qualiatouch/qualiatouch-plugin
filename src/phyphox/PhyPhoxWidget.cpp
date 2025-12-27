@@ -88,7 +88,8 @@ void PhyPhoxWidget::appendContextMenu(Menu* menu) {
             "Light",
             "Tilt",
             "Sound intensity",
-            "Color (HSV converted to RGB)"
+            "Color (HSV converted to RGB)",
+            "Gyroscope"
         },
         &module->sensorModeParam
     ));

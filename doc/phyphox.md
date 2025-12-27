@@ -20,6 +20,9 @@ The PhyPhox app uses the sensors available in the smartphone it's installed on. 
 - orientation (tilt)
 - sound (dB)
 - color (hsv)
+- gyroscope (gyr)
+
+You can request support of another sensor type at qualiatouch@proton.me.
 
 ## Instructions
 
@@ -30,7 +33,7 @@ The PhyPhox app uses the sensors available in the smartphone it's installed on. 
 
 ## Parameters
 
-- Voltage mode : unipolar/bipolar. Sets the module to output either a ` 0V -> +10V` or a `-5V -> +5V` voltage signal.
+- Voltage mode : unipolar/bipolar. Sets the module to output either a `0V -> +10V` or a `-5V -> +5V` voltage signal.
 
 ## Led colors
 

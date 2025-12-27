@@ -117,6 +117,14 @@ void PhyPhoxSensor::initLimits() {
             sensorMinZ = DEFAULT_MIN_Z_COLOR;
             sensorMaxZ = DEFAULT_MAX_Z_COLOR;
             break;
+        case Sensor::SENSOR_GYR:
+            sensorMinX = DEFAULT_MIN_X_GYR;
+            sensorMaxX = DEFAULT_MAX_X_GYR;
+            sensorMinY = DEFAULT_MIN_Y_GYR;
+            sensorMaxY = DEFAULT_MAX_Y_GYR;
+            sensorMinZ = DEFAULT_MIN_Z_GYR;
+            sensorMaxZ = DEFAULT_MAX_Z_GYR;
+            break;
     }
 }
 
@@ -135,6 +143,8 @@ std::string PhyPhoxSensor::getQueryParams(Sensor sensor) {
             return "dB";
         case PhyPhoxSensor::SENSOR_COLOR:
             return "h&s&v";
+        case PhyPhoxSensor::SENSOR_GYR:
+            return "gyrX&gyrY&gyrZ";
         default:
             return "";
     }
@@ -178,6 +188,15 @@ static std::string getType(const PhyPhoxSensor::Sensor sensor, PhyPhoxSensor::Co
                 arg = "v";
             }
             return arg;
+        case PhyPhoxSensor::SENSOR_GYR:
+            arg = "X";
+            if (coord == PhyPhoxSensor::COORD_Y) {
+                arg = "Y";
+            } else if (coord == PhyPhoxSensor::COORD_Z) {
+                arg = "Z";
+            }
+            type.append("gyr").append(arg);
+            return type;
         default:
             return "";
     }
@@ -236,6 +255,7 @@ static SensorValues getValue(const json j, const PhyPhoxSensor::Sensor sensor) {
         case PhyPhoxSensor::SENSOR_LIGHT:
         case PhyPhoxSensor::SENSOR_TILT:
         case PhyPhoxSensor::SENSOR_SOUND:
+        case PhyPhoxSensor::SENSOR_GYR:
             v.x = valueX;
             v.y = valueY;
             v.z = valueZ;
