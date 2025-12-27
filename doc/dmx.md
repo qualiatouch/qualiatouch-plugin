@@ -6,8 +6,6 @@
 
 There is no guarantee of any kind. Use at your own risk.
 
-For now, DMX modules can only work by being put together side-to-side (as expanders), as one group. If you have two groups of DMX modules, _at least_ one of them will not work correctly.
-
 ## Requirements
 
 - An USB -> DMX OUT adapter
@@ -45,7 +43,7 @@ One handy thing with the DMX protocol is that lighting fixtures often use severa
 
 The base address will be the address assigned to the first (leftmost) module. Each additional module will have a channel of +1 relative to the previous module.
 
-As mentioned above, currently only one group can work correctly, so all your DMX modules have to be side-to-side on the rack, and therefore they will send to consecutive channels. However, if you need to send DMX signals to separate addresses, you can assign an address to one of the chained modules by checking "Use own DMX address" in its menu, and assigning an address to it, as for the first module. The modules on the right side of this module will follow its address incrementally.
+If you want a module to have its own DMX address (i.e. different than incrementing the previous one) while still being right aside another DMX module, you can check the "Use own DMX address" option in its menu, and assign an address to it. The modules on the right side of this module will follow its address incrementally.
 
 <image>
 
