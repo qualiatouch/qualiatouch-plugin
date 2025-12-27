@@ -34,18 +34,14 @@ DmxRegistry& DmxRegistry::instance() {
 }
 
 void DmxRegistry::registerModule(DmxOut1* module) {
-    cout << "addModule " << module->getId() << endl;
     modules.push_back(module);
-    cout << "size is now " << modules.size() << endl;
 }
 
 void DmxRegistry::unregisterModule(DmxOut1* module) {
-    cout << "removeModule " << module->getId() << endl;
     modules.erase(
         std::remove(modules.begin(), modules.end(), module),
         modules.end()
     );
-    cout << "size is now " << modules.size() << endl;
 }
 
 bool DmxRegistry::isMaster(int64_t id) {

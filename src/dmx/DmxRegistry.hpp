@@ -18,7 +18,7 @@ private:
 
     unsigned int dmxUniverse = 1;
 
-    bool debug = true;
+    bool debug = false;
 
     DmxRegistry();
 
