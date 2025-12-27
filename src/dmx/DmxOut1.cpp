@@ -32,6 +32,15 @@ void DmxOut1::onRemove() {
     DmxRegistry::instance().unregisterModule(this);
 }
 
+bool DmxOut1::isLeftModuleDmx() {
+    Module* leftModule = getLeftExpander().module;
+    if (leftModule == nullptr) {
+        return false;
+    }
+
+    return isSameModel(leftModule);
+}
+
 void DmxOut1::refreshModuleChain() {
     if (debugChain) {
         cout << "module " << getId() << " in refreshModuleChain()" << endl;

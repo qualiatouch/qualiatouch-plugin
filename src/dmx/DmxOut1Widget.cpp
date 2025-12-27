@@ -30,6 +30,10 @@ void DmxOut1Widget::appendContextMenu(Menu* menu) {
 
     UseOwnDmxAddressItem* useOwnDmxAddressItem = new UseOwnDmxAddressItem(module);
     useOwnDmxAddressItem->text = "Use own DMX address";
+
+    if (!module->isLeftModuleDmx()) {
+        useOwnDmxAddressItem->disabled = true;
+    }
     menu->addChild(useOwnDmxAddressItem);
 
     if (module->useOwnDmxAddress) {

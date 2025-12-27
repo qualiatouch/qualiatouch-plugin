@@ -78,6 +78,7 @@ struct DmxOut1 : Module {
     bool isMaster();
     void onAdd() override;
     void onRemove() override;
+    bool isLeftModuleDmx();
     void refreshModuleChain();
     void onExpanderChange(const ExpanderChangeEvent &e) override;
     void toggleUseOwnDmxAddress();
