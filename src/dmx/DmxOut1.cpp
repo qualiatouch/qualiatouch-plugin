@@ -230,6 +230,14 @@ void DmxOut1::process(const ProcessArgs& args) {
     loop++;
 }
 
+int DmxOut1::getDmxUniverse() {
+    return DmxRegistry::instance().getDmxUniverse();
+}
+
+void DmxOut1::setDmxUniverse(int universe) {
+    DmxRegistry::instance().setDmxUniverse(universe);
+}
+
 json_t* DmxOut1::dataToJson() {
     json_t* rootJson = json_object();
     json_object_set_new(rootJson, dmxAddressJsonKey.c_str(), json_integer(dmxAddress));

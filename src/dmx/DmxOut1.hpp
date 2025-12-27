@@ -76,14 +76,21 @@ struct DmxOut1 : Module {
     DmxOut1();
 
     bool isMaster();
+
     void onAdd() override;
     void onRemove() override;
     bool isLeftModuleDmx();
     void refreshModuleChain();
     void onExpanderChange(const ExpanderChangeEvent &e) override;
     void toggleUseOwnDmxAddress();
+
     void process(const ProcessArgs& arg) override;
+
     json_t* dataToJson() override;
     void dataFromJson(json_t* rootJson) override;
+
     bool isSameModel(Module* otherModule);
+
+    int getDmxUniverse();
+    void setDmxUniverse(int universe);
 };

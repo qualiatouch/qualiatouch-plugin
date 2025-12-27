@@ -32,6 +32,20 @@ struct DmxAddressMenuItem : ui::MenuItem {
     Menu* createChildMenu() override;
 };
 
+struct DmxUniverseField : ui::TextField {
+    DmxOut1* module;
+
+    DmxUniverseField(DmxOut1* moduleParam);
+
+    void onSelectKey(const event::SelectKey& event) override;
+};
+
+struct DmxUniverseMenuItem : ui::MenuItem {
+    DmxOut1* module;
+
+    Menu* createChildMenu() override;
+};
+
 struct DmxChannelDisplayWidget : Widget {
     DmxOut1* module;
     FramebufferWidget* parentFrameBufferWidget;

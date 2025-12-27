@@ -1,7 +1,6 @@
 #include "DmxRegistry.hpp"
 
 DmxRegistry::DmxRegistry() {
-
 }
 
 DmxRegistry& DmxRegistry::instance() {
@@ -80,6 +79,14 @@ void DmxRegistry::trigger(int64_t id) {
     sendDmx();
 }
 
+int DmxRegistry::getDmxUniverse() {
+    return dmxUniverse;
+}
+
+void DmxRegistry::setDmxUniverse(int universe) {
+    dmxUniverse = universe;
+}
+
 void DmxRegistry::sendDmx() {
     int nbModules = modules.size();
     for (int i = 0; i < nbModules; i++) {
@@ -99,7 +106,7 @@ void DmxRegistry::sendDmx() {
     }
 
     if (debug) {
-        cout << "sending DMX : " << buffer.ToString();
+        cout << "sending DMX to universe " << dmxUniverse << " : " << buffer.ToString();
     }
 
     if (!ola_client->SendDmx(dmxUniverse, buffer)) {
@@ -108,7 +115,7 @@ void DmxRegistry::sendDmx() {
         }
     } else {
         if (debug) {
-            cout << "sent" << endl;
+            cout << " - sent" << endl;
         }
     }
 }

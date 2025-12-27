@@ -33,5 +33,8 @@ public:
     bool isMaster(int64_t id);
     void trigger(int64_t id);
 
+    void setDmxUniverse(int u);
+    int getDmxUniverse();
+
     void sendDmx();
 };
