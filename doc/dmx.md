@@ -1,5 +1,7 @@
 # DMX modules
 
+The DMX modules allow you to send DMX data to lighting fixtures in real life, from signals in your modular synth patch.
+
 ## Important
 
 🚧 THOSE MODULES ARE STILL EXPERIMENTAL 🚧
@@ -10,7 +12,7 @@ There is no guarantee of any kind. Use at your own risk.
 
 - An USB -> DMX OUT adapter
   - I'm using the ENTTEC Open DMX USB adapter. I'm saying that only as an example of what works, I'm not affiliated with ENTTEC in any way.
-- Any DMX fixture, connected to the adapter by DMX cables. I mean, that's the purpose of the module, so if you're reading this you probably have at least one lighting fixture laying around in your field of view which you want to be controlled.
+- Any DMX fixture, connected to the adapter by DMX cables. I mean, that's the purpose of the module, so if you're reading this you probably have at least one lighting fixture laying around somewhere in your field of view right now, and which you want to be controlled.
 - The drivers / framework that are supposed to work with your adapter.
   - I'm using [OLA](https://www.openlighting.org/ola/) (Open Lighting Architecture) on Linux.
 - Some hope that your computer will allow you to make it all work.
@@ -23,9 +25,11 @@ The DMX adapter should be plugged in, and the OLA framework running, before star
 
 Start with one DMX module. It has an input port and a blackout button.
 
-<image>
+![](dmx-out-1-module.png "DMX OUT 1")
 
-You can configure the DMX address of the module by right-clicking it and modifying the "DMX Address" field. For now, the DMX modules will only send data to universe 1.
+You can configure the DMX address of the module by right-clicking it and modifying the "DMX Address" field.
+
+You can also select the DMX universe you want the data to be sent to. For now, all DMX modules on the rack will send data to the same DMX universe.
 
 The module will:
   - take a 0-10V CV signal as an input
@@ -39,13 +43,17 @@ The module displays its DMX channel under the value input.
 
 One handy thing with the DMX protocol is that lighting fixtures often use several consecutive channels, starting at their assigned DMX address, to control separate parameters of the same fixture. The DMX module is conceived for that use and allows you to send values to consecutive DMX channels, by chaining several modules together:
 
-<image>
+![](dmx-chain.png "Chained")
 
-The base address will be the address assigned to the first (leftmost) module. Each additional module will have a channel of +1 relative to the previous module.
+The base address will be the address assigned to the first (leftmost) module. Each additional module (directly on the right and touching) will have a channel of +1 relative to the previous module.
 
 If you want a module to have its own DMX address (i.e. different than incrementing the previous one) while still being right aside another DMX module, you can check the "Use own DMX address" option in its menu, and assign an address to it. The modules on the right side of this module will follow its address incrementally.
 
-<image>
+![](dmx-use-own-address.png)
+
+![](dmx-two-chains.png "Two chains")
+
+![](dmx-three-chains.png "Three chains")
 
 Each module displays the DMX channel it's sending data to ; if the module uses its own address (not depending on the other modules), the address display is emphasized.
 
@@ -65,6 +73,6 @@ What i wanted to do is giving a way for people to command DMX lighting specifica
 
 ## Show your work!
 
-If you use those modules, please send me a video of what you've realized (qualiatouch@proton.me), i'm eager to see what people will do with them!
+If you use those modules, and doing a lightshow commanded by VCV, please send me a video of what you've realized (qualiatouch@proton.me), i'm eager to see what people will do with them!
 
 

@@ -4,6 +4,8 @@
 
 This module connects to the [PhyPhox](https://phyphox.org/) app on a smartphone and produces outputs with the values measured by the sensors of the smartphone. The plugin is not affiliated with PhyPhox.
 
+![](phyphox-sensor-module.png)
+
 ## Requirements
 
 - A smartphone
@@ -41,7 +43,7 @@ A LED indicates the status of the module :
 
 - red : error - the smartphone is not reachable, or the data is invalid
 - orange : we're connected to the PhyPhox app, but the app is not measuring
-- green : we're connected to the PhyPhox app and receiving data
+- green : we're connected to the PhyPhox app and receiving data measured by the sensor
 
 ## Good to know
 
@@ -49,4 +51,4 @@ The module parameters are saved in the patch file, so they'll be the same when y
 
 Switching sensor type might not work immediately. You might need to save the patch, close and re-open vcv rack, so that the newly selected sensor is taken into account.
 
-The PhyPhox app doesn't allow to use more than one sensor at the same time. Howerver, if you have several devices with the app installed, you can use several modules on the same rack, each one connected to a different device.
+The PhyPhox app doesn't allow to use more than one sensor at the same time. Howerver, if you have several devices with the app installed, you can place several PhyPhox modules on the same rack, each one connected to a different device.

@@ -2,7 +2,9 @@
 
 ## About
 
-QualiaTouch is about giving the machine perception and action capabilities with the outside world.
+> QualiaTouch is about giving the machine perception and action capabilities with the outside world.
+
+![](doc/qualiatouch-modules.png)
 
 ## PhyPhox sensors module
 
@@ -10,7 +12,7 @@ QualiaTouch is about giving the machine perception and action capabilities with 
 
 ## KinectSensor module
 
-- KinectSensor : retrieves hand position and depth from the Kinect sensor. This plugin is not affiliated with Kinect or Microsoft in any way. 🚧 Still experimental. 🚧 Documentation [here](doc/kinect.md).
+- KinectSensor : retrieves hand position and depth from the Kinect sensor. This plugin is not affiliated with Kinect or Microsoft in any way. 🚧 Still experimental 🚧 Documentation [here](doc/kinect.md).
 
 ## DMX module
 
@@ -20,7 +22,7 @@ If you know about the DMX protocol, then you've already understood what this mod
 
 ## Contributing
 
-Contributions are much welcome! Especially from C++ experienced people, who'll know how to optimize the execution, clean the code, make it portable and most importantly, prevent memory leaks.
+Contributions are much welcome! Especially from C++ experienced people, who'll know how to optimize the execution, clean the code, make it portable and most importantly, prevent memory leaks. Also from svg-friendly people, to improve the module widgets.
 
 ## Thanks
 

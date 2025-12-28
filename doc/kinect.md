@@ -1,6 +1,6 @@
 # KinectSensor module
 
-The Kinect sensor device has been used for many uses, further than just a gaming console accessory.
+The Kinect sensor device has been used for many uses, further than just a gaming console accessory, especially in robotics.
 
 I wanted to allow people to get body movement as input signal into VCV Rack. For instance, controlling pitch and volume with the hands, like with a theremin.
 
@@ -24,15 +24,21 @@ You cannot connect the Kinect to the PC directly, because it uses a specific pro
 
 ## The KinectSensor module
 
-<image>
+![](kinect-sensor-module.png)
 
 ## Outputs
 
-The module has 4 outputs. The first two output a 0-10V CV signal corresponding to the X and Y position of the closest object (usually, you'll use one hand in front of you). The third output is the depth of the closest object. The fourth one has two values, depending on wether the closest object is closer or further than a defined threshold.
+The module has 4 outputs.
+
+  - The first two (X and Y) output a 0-10V CV signal corresponding to the X and Y position of the closest object (usually, you'll use one hand in front of you).
+  - The third output is the depth of the closest object.
+  - The fourth outputs either 10V or 0V, depending on wether the closest object is closer or further than a defined threshold.
 
 ## Threshold parameter
 
 A knob allows you to change the threshold value.
+
+The threshold has an hysteresis band of 50mm to avoid flickering when your hand is close to the threshold.
 
 ## Sensor tilt
 
