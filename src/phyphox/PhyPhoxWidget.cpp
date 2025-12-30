@@ -62,7 +62,7 @@ void SensorLimitField::onSelectKey(const event::SelectKey& e) {
                     module->sensorMinZ = std::stof(text);
                     break;
                 case MAX_Z:
-                    module->sensorMinZ = std::stof(text);
+                    module->sensorMaxZ = std::stof(text);
                     break;
                 default:
                     break;

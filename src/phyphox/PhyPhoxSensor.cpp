@@ -67,7 +67,7 @@ void PhyPhoxSensor::initUrl() {
     }
 }
 
-void PhyPhoxSensor::initLimits() {
+void PhyPhoxSensor::initLimitsFromDefaults() {
     switch (sensor) {
         case Sensor::SENSOR_MAG:
             sensorMinX = DEFAULT_MIN_X_MAG;
@@ -124,6 +124,67 @@ void PhyPhoxSensor::initLimits() {
             sensorMaxY = DEFAULT_MAX_Y_GYR;
             sensorMinZ = DEFAULT_MIN_Z_GYR;
             sensorMaxZ = DEFAULT_MAX_Z_GYR;
+            break;
+    }
+}
+
+void PhyPhoxSensor::initLimitsFromJson() {
+    switch (sensor) {
+        case Sensor::SENSOR_MAG:
+            sensorMinX = minXParam;
+            sensorMaxX = maxXParam;
+            sensorMinY = minYParam;
+            sensorMaxY = maxYParam;
+            sensorMinZ = minZParam;
+            sensorMaxZ = maxZParam;
+            break;
+        case Sensor::SENSOR_ACC:
+            sensorMinX = minXParam;
+            sensorMaxX = maxXParam;
+            sensorMinY = minYParam;
+            sensorMaxY = maxYParam;
+            sensorMinZ = minZParam;
+            sensorMaxZ = maxZParam;
+            break;
+        case Sensor::SENSOR_LIGHT:
+            sensorMinX = minXParam;
+            sensorMaxX = maxXParam;
+            sensorMinY = minYParam;
+            sensorMaxY = maxYParam;
+            sensorMinZ = minZParam;
+            sensorMaxZ = maxZParam;
+            break;
+        case Sensor::SENSOR_TILT:
+            sensorMinX = minXParam;
+            sensorMaxX = maxXParam;
+            sensorMinY = minYParam;
+            sensorMaxY = maxYParam;
+            sensorMinZ = minZParam;
+            sensorMaxZ = maxZParam;
+            break;
+        case Sensor::SENSOR_SOUND:
+            sensorMinX = minXParam;
+            sensorMaxX = maxXParam;
+            sensorMinY = minYParam;
+            sensorMaxY = maxYParam;
+            sensorMinZ = minZParam;
+            sensorMaxZ = maxZParam;
+            break;
+        case Sensor::SENSOR_COLOR:
+            sensorMinX = minXParam;
+            sensorMaxX = maxXParam;
+            sensorMinY = minYParam;
+            sensorMaxY = maxYParam;
+            sensorMinZ = minZParam;
+            sensorMaxZ = maxZParam;
+            break;
+        case Sensor::SENSOR_GYR:
+            sensorMinX = minXParam;
+            sensorMaxX = maxXParam;
+            sensorMinY = minYParam;
+            sensorMaxY = maxYParam;
+            sensorMinZ = minZParam;
+            sensorMaxZ = maxZParam;
             break;
     }
 }
@@ -419,6 +480,18 @@ json_t* PhyPhoxSensor::dataToJson() {
     json_object_set_new(rootJson, sensorModeParamJsonKey.c_str(), json_integer(sensorModeParam));
     json_object_set_new(rootJson, voltageModeJsonKey.c_str(), json_integer(voltageMode));
 
+    json_object_set_new(rootJson, xMinJsonKey.c_str(), json_real(sensorMinX));
+    json_object_set_new(rootJson, xMaxJsonKey.c_str(), json_real(sensorMaxX));
+    json_object_set_new(rootJson, yMinJsonKey.c_str(), json_real(sensorMinY));
+    json_object_set_new(rootJson, yMaxJsonKey.c_str(), json_real(sensorMaxY));
+    json_object_set_new(rootJson, zMinJsonKey.c_str(), json_real(sensorMinZ));
+    json_object_set_new(rootJson, zMaxJsonKey.c_str(), json_real(sensorMaxZ));
+
+    if (debug) {
+        char* jsonStr = json_dumps(rootJson, JSON_INDENT(2));
+        cout << "saving " << jsonStr << endl;
+    }
+
     return rootJson;
 }
 
@@ -446,11 +519,42 @@ void PhyPhoxSensor::dataFromJson(json_t* rootJson)  {
             ip = ipValue;
         }
     }
+
+    json_t* xMinJson = json_object_get(rootJson, xMinJsonKey.c_str());
+    if (xMinJson) {
+        minXParam = (float) json_real_value(xMinJson);
+    }
+    json_t* xMaxJson = json_object_get(rootJson, xMaxJsonKey.c_str());
+    if (xMaxJson) {
+        maxXParam = (float) json_real_value(xMaxJson);
+    }
+    json_t* yMinJson = json_object_get(rootJson, yMinJsonKey.c_str());
+    if (yMinJson) {
+        minYParam = (float) json_real_value(yMinJson);
+    }
+    json_t* yMaxJson = json_object_get(rootJson, yMaxJsonKey.c_str());
+    if (yMaxJson) {
+        maxYParam = (float) json_real_value(yMaxJson);
+    }
+    json_t* zMinJson = json_object_get(rootJson, zMinJsonKey.c_str());
+    if (zMinJson) {
+        minZParam = (float) json_real_value(zMinJson);
+    }
+    json_t* zMaxJson = json_object_get(rootJson, zMaxJsonKey.c_str());
+    if (xMaxJson) {
+        maxZParam = (float) json_real_value(zMaxJson);
+    }
+
+    loadedFromJson = true;
 }
 
 void PhyPhoxSensor::initSensor() {
     initUrl();
-    initLimits();
+    if (loadedFromJson) {
+        initLimitsFromJson();
+    } else {
+        initLimitsFromDefaults();
+    }
 }
 
 void PhyPhoxSensor::process(const ProcessArgs& args) {

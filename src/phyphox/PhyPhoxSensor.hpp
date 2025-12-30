@@ -85,6 +85,12 @@ struct PhyPhoxSensor : Module {
     std::string sensorModeParamJsonKey = "sensorModeParam";
     std::string voltageModeJsonKey = "voltageMode";
     std::string ipJsonKey = "ip";
+    std::string xMinJsonKey = "xMin";
+    std::string xMaxJsonKey = "xMax";
+    std::string yMinJsonKey = "yMin";
+    std::string yMaxJsonKey = "yMax";
+    std::string zMinJsonKey = "zMin";
+    std::string zMaxJsonKey = "zMax";
 
 	float outX = 0.f;
 	float outY = 0.f;
@@ -146,6 +152,15 @@ struct PhyPhoxSensor : Module {
     float sensorMinZ = DEFAULT_MIN_Z_MAG;
     float sensorMaxZ = DEFAULT_MAX_Z_MAG;
 
+    float minXParam;
+    float maxXParam;
+    float minYParam;
+    float maxYParam;
+    float minZParam;
+    float maxZParam;
+
+    bool loadedFromJson = false;
+
 	float timeSinceLastRequest = 0.f;
 	bool isFetching = false;
 
@@ -179,7 +194,8 @@ struct PhyPhoxSensor : Module {
     void setWidget(PhyPhoxWidget* widgetParam);
 
     void initUrl();
-    void initLimits();
+    void initLimitsFromDefaults();
+    void initLimitsFromJson();
     void initSensor();
 
     void setIpAddress(std::string newIp);
