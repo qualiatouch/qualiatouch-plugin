@@ -161,8 +161,9 @@ struct PhyPhoxSensor : Module {
 
     bool loadedFromJson = false;
 
-	float timeSinceLastRequest = 0.f;
-	bool isFetching = false;
+    float sampleRate = 0.01f;
+    float timeSinceLastRequest = 0.f;
+    bool isFetching = false;
 
     bool debug = false;
 

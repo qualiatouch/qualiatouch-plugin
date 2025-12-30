@@ -559,7 +559,7 @@ void PhyPhoxSensor::initSensor() {
 
 void PhyPhoxSensor::process(const ProcessArgs& args) {
 		timeSinceLastRequest += args.sampleTime;
-		if (!isFetching && timeSinceLastRequest >= 0.01f) {
+		if (!isFetching && timeSinceLastRequest >= sampleRate) {
             if (sensorModeParam != sensor) {
                 initSensor();
             }

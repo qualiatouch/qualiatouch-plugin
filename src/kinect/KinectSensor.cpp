@@ -91,7 +91,7 @@ void KinectSensor::startKinectThread() {
                     cerr << "did not get hand position" << endl;
                 // }
             }
-            std::this_thread::sleep_for(std::chrono::milliseconds(50)); // todo param
+            std::this_thread::sleep_for(std::chrono::milliseconds(deviceSleep));
         }
     });
     if (debug) {
@@ -105,7 +105,7 @@ void KinectSensor::process(const ProcessArgs& args) {
     }
 
     timeSinceLastLoop += args.sampleTime;
-    if (timeSinceLastLoop < 0.05f) {
+    if (timeSinceLastLoop < sampleRate) {
         return;
     }
 
@@ -115,7 +115,7 @@ void KinectSensor::process(const ProcessArgs& args) {
     }
 
     lowerThreshold = threshold_mm;
-    upperThreshold = lowerThreshold + 50;
+    upperThreshold = lowerThreshold + hysteresisRange;
 
     if (debug) {
         //cout << "before getting data" << endl;

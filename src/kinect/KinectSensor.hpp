@@ -45,7 +45,10 @@ struct KinectSensor : Module {
 
     bool debug = false;
 
-	float timeSinceLastLoop = 0.f;
+    float sampleRate = 0.05f;
+    float timeSinceLastLoop = 0.f;
+    int deviceSleep = 50; // ms
+    float hysteresisRange = 50; // mm
 
     bool hasDevice = false;
 
