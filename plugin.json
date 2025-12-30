@@ -6,9 +6,9 @@
   "brand": "",
   "author": "Qualia Touch",
   "authorEmail": "qualiatouch@proton.me",
-  "pluginUrl": "",
+  "pluginUrl": "https://github.com/qualiatouch/qualiatouch-plugin/blob/master/Readme.md",
   "authorUrl": "",
-  "manualUrl": "",
+  "manualUrl": "https://github.com/qualiatouch/qualiatouch-plugin/blob/master/Readme.md",
   "sourceUrl": "https://github.com/qualiatouch/qualiatouch-plugin",
   "changelogUrl": "",
   "modules": [
@@ -22,10 +22,10 @@
       ]
     },
     {
-      "slug": "PhyPhoxSensor",
-      "name": "PhyPhox Sensor",
-      "description": "Receive smartphone sensor data from PhyPhox app",
-      "manualUrl": "",
+      "slug": "PhoneSensor",
+      "name": "Phone Sensor",
+      "description": "Receives smartphone sensor data from PhyPhox app",
+      "manualUrl": "https://github.com/qualiatouch/qualiatouch-plugin/blob/master/doc/phonesensor.md",
       "tags": [
         "External"
       ]

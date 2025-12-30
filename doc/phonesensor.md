@@ -1,10 +1,10 @@
-# PhyPhox sensor module
+# PhoneSensor module
 
 ## About
 
 This module connects to the [PhyPhox](https://phyphox.org/) app on a smartphone and produces outputs with the values measured by the sensors of the smartphone. The plugin is not affiliated with PhyPhox.
 
-![](phyphox-sensor-module.png)
+![](phonesensor-module.png)
 
 ## Requirements
 
@@ -15,7 +15,7 @@ This module connects to the [PhyPhox](https://phyphox.org/) app on a smartphone 
 
 ## Supported sensors
 
-The PhyPhox app uses the sensors available in the smartphone it's installed on. The QualiaTouch PhyPhox module currently supports those types of sensors:
+The PhyPhox app uses the sensors available in the smartphone it's installed on. The PhoneSensor module currently supports those types of sensors:
 - magnetic (mag)
 - acceleration (acc)
 - light (illum)
@@ -28,8 +28,8 @@ You can request support of another sensor type at qualiatouch@proton.me.
 
 ## Instructions
 
-1. On the smartphone, open the PhyPhox app, select a sensor (among supported sensors of course), and in the top-right menu, select the option to allow remote control. This will open a webserver in the app, accessible from the local network, and the app will display the ip and port of the webserver. This will make the data available from the PhyPhox VCV module.
-2. Select the same type of sensor in the parameters (right-click menu) of the module.
+1. On the smartphone, open the PhyPhox app, select a sensor (among supported sensors of course), and in the top-right menu, select the option to allow remote control. This will open a webserver in the app, accessible from the local network, and the app will display the ip and port of the webserver. This will make the data available from the PhoneSensor module.
+2. Select the same type of sensor in the parameters (right-click menu) of the PhoneSensor module.
 3. Set the ip/port in the parameters of the module.
 4. Use the X/Y/Z outputs of the module to command everything you want.
 
@@ -51,4 +51,4 @@ The module parameters are saved in the patch file, so they'll be the same when y
 
 Switching sensor type might not work immediately. You might need to save the patch, close and re-open vcv rack, so that the newly selected sensor is taken into account.
 
-The PhyPhox app doesn't allow to use more than one sensor at the same time. Howerver, if you have several devices with the app installed, you can place several PhyPhox modules on the same rack, each one connected to a different device.
+The PhyPhox app doesn't allow to use more than one sensor at the same time. Howerver, if you have several devices with the app installed, you can place several PhoneSensor modules on the same rack, each one connected to a different device.

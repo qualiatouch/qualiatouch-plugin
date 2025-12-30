@@ -2,13 +2,13 @@
 
 ## About
 
-> QualiaTouch is about giving the machine perception and action capabilities with the outside world.
+QualiaTouch is about giving the machine perception and action capabilities with the outside world.
 
 ![](doc/qualiatouch-modules.png)
 
-## PhyPhox sensors module
+## PhoneSensor module
 
-- PhyPhoxSensor : retrieves sensor data from the Phyphox app. Not affiliated with PhyPhox, just using their awesome app. Documentation [here](doc/phyphox.md).
+- PhoneSensor module : retrieves sensor data from the Phyphox app. Not affiliated with PhyPhox, just using their awesome app. Documentation [here](doc/phonesensor.md).
 
 ## KinectSensor module
 

@@ -1,6 +1,6 @@
-#include "PhyPhoxWidget.hpp"
+#include "PhoneSensorWidget.hpp"
 
-IpAddressField::IpAddressField(PhyPhoxSensor* moduleParam) {
+IpAddressField::IpAddressField(PhoneSensor* moduleParam) {
     module = moduleParam;
     box.size.x = 200;
     placeholder = "192.168.1.25:8080";
@@ -33,7 +33,7 @@ Menu* IpAddressMenuItem::createChildMenu() {
     return menu;
 }
 
-SensorLimitField::SensorLimitField(PhyPhoxSensor* moduleParam, SensorLimitFieldName fieldNameParam) {
+SensorLimitField::SensorLimitField(PhoneSensor* moduleParam, SensorLimitFieldName fieldNameParam) {
     module = moduleParam;
     fieldName = fieldNameParam;
     box.size.x = 200;
@@ -44,7 +44,6 @@ void SensorLimitField::onSelectKey(const event::SelectKey& e) {
     if (e.action == GLFW_PRESS && e.key == GLFW_KEY_ENTER) {
         std::string ip = text;
         if (module) {
-            cout << "fieldName " << fieldName << endl;
             switch (fieldName) {
                 case MIN_X:
                     module->sensorMinX = std::stof(text);
@@ -79,7 +78,7 @@ void SensorLimitField::onSelectKey(const event::SelectKey& e) {
     }
 }
 
-SensorLimitMenuItem::SensorLimitMenuItem(PhyPhoxSensor* moduleParam, SensorLimitFieldName fieldNameParam, float currentValueParam) {
+SensorLimitMenuItem::SensorLimitMenuItem(PhoneSensor* moduleParam, SensorLimitFieldName fieldNameParam, float currentValueParam) {
     module = moduleParam;
     fieldName = fieldNameParam;
     currentValue = currentValueParam;
@@ -131,26 +130,26 @@ void SensorTypeWidget::draw(const DrawArgs& args) {
     }
 }
 
-void PhyPhoxWidget::setDirty() {
+void PhoneSensorWidget::setDirty() {
     frameBufferWidget->setDirty();
 }
 
-PhyPhoxWidget::PhyPhoxWidget(PhyPhoxSensor* moduleParam) {
+PhoneSensorWidget::PhoneSensorWidget(PhoneSensor* moduleParam) {
     module = moduleParam;
     setModule(module);
 
-    setPanel(createPanel(asset::plugin(pluginInstance, "res/phyphox-sensor.svg")));
+    setPanel(createPanel(asset::plugin(pluginInstance, "res/phone-sensor.svg")));
 
     addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, 0)));
     addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, 0)));
     addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
     addChild(createWidget<ScrewSilver>(Vec(box.size.x - 2 * RACK_GRID_WIDTH, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-    addChild(createLightCentered<SmallLight<RedGreenBlueLight>>(mm2px(Vec(7.625, 42.5)), module, PhyPhoxSensor::STATUS_LIGHT_RED));
+    addChild(createLightCentered<SmallLight<RedGreenBlueLight>>(mm2px(Vec(7.625, 42.5)), module, PhoneSensor::STATUS_LIGHT_RED));
 
-    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 52.5)), module, PhyPhoxSensor::OUT_X));
-    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 72.5)), module, PhyPhoxSensor::OUT_Y));
-    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 92.5)), module, PhyPhoxSensor::OUT_Z));
+    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 52.5)), module, PhoneSensor::OUT_X));
+    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 72.5)), module, PhoneSensor::OUT_Y));
+    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 92.5)), module, PhoneSensor::OUT_Z));
 
     frameBufferWidget = new FramebufferWidget;
     addChild(frameBufferWidget);
@@ -160,7 +159,7 @@ PhyPhoxWidget::PhyPhoxWidget(PhyPhoxSensor* moduleParam) {
     frameBufferWidget->addChild(sensorTypeWidget);
 }
 
-void PhyPhoxWidget::appendContextMenu(Menu* menu) {
+void PhoneSensorWidget::appendContextMenu(Menu* menu) {
     menu->addChild(new MenuSeparator);
     menu->addChild(createMenuLabel("PhyPhox app settings"));
 

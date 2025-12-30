@@ -1,23 +1,23 @@
 #pragma once
 #include "../plugin.hpp"
-#include "PhyPhoxSensor.hpp"
+#include "PhoneSensor.hpp"
 
 using namespace std;
 
 using namespace rack;
 
-struct PhyPhoxSensor;
+struct PhoneSensor;
 
 struct IpAddressField : ui::TextField {
-    PhyPhoxSensor* module;
+    PhoneSensor* module;
 
-    IpAddressField(PhyPhoxSensor* moduleParam);
+    IpAddressField(PhoneSensor* moduleParam);
 
     void onSelectKey(const event::SelectKey& e) override;
 };
 
 struct IpAddressMenuItem : ui::MenuItem {
-    PhyPhoxSensor* module;
+    PhoneSensor* module;
 
     Menu* createChildMenu() override;
 };
@@ -32,20 +32,20 @@ enum SensorLimitFieldName {
 };
 
 struct SensorLimitField : ui::TextField {
-    PhyPhoxSensor* module;
+    PhoneSensor* module;
     SensorLimitFieldName fieldName;
 
-    SensorLimitField(PhyPhoxSensor* moduleParam, SensorLimitFieldName fieldNameParam);
+    SensorLimitField(PhoneSensor* moduleParam, SensorLimitFieldName fieldNameParam);
 
     void onSelectKey(const event::SelectKey& e) override;
 };
 
 struct SensorLimitMenuItem : ui::MenuItem {
-    PhyPhoxSensor* module;
+    PhoneSensor* module;
     SensorLimitFieldName fieldName;
     float currentValue;
 
-    SensorLimitMenuItem(PhyPhoxSensor* moduleParam, SensorLimitFieldName fieldNameParam, float currentValue);
+    SensorLimitMenuItem(PhoneSensor* moduleParam, SensorLimitFieldName fieldNameParam, float currentValue);
     std::string getDisplayText(SensorLimitFieldName name);
     Menu* createChildMenu() override;
 };
@@ -54,12 +54,12 @@ struct SensorTypeWidget : Widget {
 	void draw(const DrawArgs& args) override;
 };
 
-struct PhyPhoxWidget : ModuleWidget {
-    PhyPhoxSensor* module;
+struct PhoneSensorWidget : ModuleWidget {
+    PhoneSensor* module;
     FramebufferWidget* frameBufferWidget;
     SensorTypeWidget* sensorTypeWidget;
 
-    PhyPhoxWidget(PhyPhoxSensor* moduleParam);
+    PhoneSensorWidget(PhoneSensor* moduleParam);
 
     void appendContextMenu(Menu* menu) override;
 

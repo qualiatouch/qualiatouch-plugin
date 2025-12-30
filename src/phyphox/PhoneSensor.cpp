@@ -1,5 +1,5 @@
-#include "PhyPhoxSensor.hpp"
-#include "PhyPhoxWidget.hpp"
+#include "PhoneSensor.hpp"
+#include "PhoneSensorWidget.hpp"
 #include "../util/utils.hpp"
 
 using json = nlohmann::json;
@@ -17,7 +17,7 @@ static size_t CurlWriteCallback(void* contents, size_t size, size_t nmemb, void*
     return size * nmemb;
 }
 
-PhyPhoxSensor::PhyPhoxSensor() {
+PhoneSensor::PhoneSensor() {
     config(PARAMS_LEN, INPUTS_LEN, NUM_OUTPUTS, LIGHTS_LEN);
 
     configOutput(OUT_X, "X");
@@ -39,16 +39,16 @@ PhyPhoxSensor::PhyPhoxSensor() {
     this->nextRequestId = 0;
 }
 
-void PhyPhoxSensor::setWidget(PhyPhoxWidget* widgetParam) {
+void PhoneSensor::setWidget(PhoneSensorWidget* widgetParam) {
     widget = widgetParam;
 }
 
-void PhyPhoxSensor::setIpAddress(std::string newIp) {
+void PhoneSensor::setIpAddress(std::string newIp) {
     ip = newIp;
     initUrl();
 }
 
-void PhyPhoxSensor::initUrl() {
+void PhoneSensor::initUrl() {
     sensor = (Sensor) sensorModeParam;
     if (debug) {
         cout << "initUrl() sensor = " << sensor << endl;
@@ -67,7 +67,7 @@ void PhyPhoxSensor::initUrl() {
     }
 }
 
-void PhyPhoxSensor::initLimitsFromDefaults() {
+void PhoneSensor::initLimitsFromDefaults() {
     switch (sensor) {
         case Sensor::SENSOR_MAG:
             sensorMinX = DEFAULT_MIN_X_MAG;
@@ -128,7 +128,7 @@ void PhyPhoxSensor::initLimitsFromDefaults() {
     }
 }
 
-void PhyPhoxSensor::initLimitsFromJson() {
+void PhoneSensor::initLimitsFromJson() {
     switch (sensor) {
         case Sensor::SENSOR_MAG:
             sensorMinX = minXParam;
@@ -189,71 +189,71 @@ void PhyPhoxSensor::initLimitsFromJson() {
     }
 }
 
-std::string PhyPhoxSensor::getQueryParams(Sensor sensor) {
+std::string PhoneSensor::getQueryParams(Sensor sensor) {
     switch (sensor)
     {
-        case PhyPhoxSensor::SENSOR_MAG:
+        case PhoneSensor::SENSOR_MAG:
             return "magX&magY&magZ";
-        case PhyPhoxSensor::SENSOR_ACC:
+        case PhoneSensor::SENSOR_ACC:
             return "accX&accY&accZ";
-        case PhyPhoxSensor::SENSOR_LIGHT:
+        case PhoneSensor::SENSOR_LIGHT:
             return "illum";
-        case PhyPhoxSensor::SENSOR_TILT:
+        case PhoneSensor::SENSOR_TILT:
             return "tiltFlatUD&tiltFlatLR";
-        case PhyPhoxSensor::SENSOR_SOUND:
+        case PhoneSensor::SENSOR_SOUND:
             return "dB";
-        case PhyPhoxSensor::SENSOR_COLOR:
+        case PhoneSensor::SENSOR_COLOR:
             return "h&s&v";
-        case PhyPhoxSensor::SENSOR_GYR:
+        case PhoneSensor::SENSOR_GYR:
             return "gyrX&gyrY&gyrZ";
         default:
             return "";
     }
 }
 
-static std::string getType(const PhyPhoxSensor::Sensor sensor, PhyPhoxSensor::Coord coord) {
+static std::string getType(const PhoneSensor::Sensor sensor, PhoneSensor::Coord coord) {
     std::string type = "";
     std::string arg = "";
     switch (sensor)
     {
-        case PhyPhoxSensor::SENSOR_MAG:
+        case PhoneSensor::SENSOR_MAG:
             arg = "X";
-            if (coord == PhyPhoxSensor::COORD_Y) {
+            if (coord == PhoneSensor::COORD_Y) {
                 arg = "Y";
-            } else if (coord == PhyPhoxSensor::COORD_Z) {
+            } else if (coord == PhoneSensor::COORD_Z) {
                 arg = "Z";
             }
             type.append("mag").append(arg);
             return type;
-        case PhyPhoxSensor::SENSOR_ACC:
+        case PhoneSensor::SENSOR_ACC:
             arg = "X";
-            if (coord == PhyPhoxSensor::COORD_Y) {
+            if (coord == PhoneSensor::COORD_Y) {
                 arg = "Y";
-            } else if (coord == PhyPhoxSensor::COORD_Z) {
+            } else if (coord == PhoneSensor::COORD_Z) {
                 arg = "Z";
             }
             type.append("acc").append(arg);
             return type;
-        case PhyPhoxSensor::SENSOR_LIGHT:
+        case PhoneSensor::SENSOR_LIGHT:
             return "illum";
-        case PhyPhoxSensor::SENSOR_TILT:
-            arg = coord == PhyPhoxSensor::COORD_X ? "UD" : "LR";
+        case PhoneSensor::SENSOR_TILT:
+            arg = coord == PhoneSensor::COORD_X ? "UD" : "LR";
             return type.append("tiltFlat").append(arg);
-        case PhyPhoxSensor::SENSOR_SOUND:
+        case PhoneSensor::SENSOR_SOUND:
             return "dB";
-        case PhyPhoxSensor::SENSOR_COLOR:
+        case PhoneSensor::SENSOR_COLOR:
             arg = "h";
-            if (coord == PhyPhoxSensor::COORD_Y) {
+            if (coord == PhoneSensor::COORD_Y) {
                 arg = "s";
-            } else if (coord == PhyPhoxSensor::COORD_Z) {
+            } else if (coord == PhoneSensor::COORD_Z) {
                 arg = "v";
             }
             return arg;
-        case PhyPhoxSensor::SENSOR_GYR:
+        case PhoneSensor::SENSOR_GYR:
             arg = "X";
-            if (coord == PhyPhoxSensor::COORD_Y) {
+            if (coord == PhoneSensor::COORD_Y) {
                 arg = "Y";
-            } else if (coord == PhyPhoxSensor::COORD_Z) {
+            } else if (coord == PhoneSensor::COORD_Z) {
                 arg = "Z";
             }
             type.append("gyr").append(arg);
@@ -263,7 +263,7 @@ static std::string getType(const PhyPhoxSensor::Sensor sensor, PhyPhoxSensor::Co
     }
 }
 
-static float getBufferValue(const json j, const PhyPhoxSensor::Sensor sensor, PhyPhoxSensor::Coord coord) {
+static float getBufferValue(const json j, const PhoneSensor::Sensor sensor, PhoneSensor::Coord coord) {
     if (j["buffer"].empty()) {
         return 0.f;
     }
@@ -305,23 +305,23 @@ static RGB hsv_to_rgb(float h, float s, float v) {
     return rgb;
 }
 
-static SensorValues getValue(const json j, const PhyPhoxSensor::Sensor sensor) {
-    float valueX = getBufferValue(j, sensor, PhyPhoxSensor::COORD_X);
-    float valueY = getBufferValue(j, sensor, PhyPhoxSensor::COORD_Y);
-    float valueZ = getBufferValue(j, sensor, PhyPhoxSensor::COORD_Z);
+static SensorValues getValue(const json j, const PhoneSensor::Sensor sensor) {
+    float valueX = getBufferValue(j, sensor, PhoneSensor::COORD_X);
+    float valueY = getBufferValue(j, sensor, PhoneSensor::COORD_Y);
+    float valueZ = getBufferValue(j, sensor, PhoneSensor::COORD_Z);
     SensorValues v;
     switch (sensor) {
-        case PhyPhoxSensor::SENSOR_MAG:
-        case PhyPhoxSensor::SENSOR_ACC:
-        case PhyPhoxSensor::SENSOR_LIGHT:
-        case PhyPhoxSensor::SENSOR_TILT:
-        case PhyPhoxSensor::SENSOR_SOUND:
-        case PhyPhoxSensor::SENSOR_GYR:
+        case PhoneSensor::SENSOR_MAG:
+        case PhoneSensor::SENSOR_ACC:
+        case PhoneSensor::SENSOR_LIGHT:
+        case PhoneSensor::SENSOR_TILT:
+        case PhoneSensor::SENSOR_SOUND:
+        case PhoneSensor::SENSOR_GYR:
             v.x = valueX;
             v.y = valueY;
             v.z = valueZ;
             return v;
-        case PhyPhoxSensor::SENSOR_COLOR:
+        case PhoneSensor::SENSOR_COLOR:
             RGB rgb = hsv_to_rgb(valueX, valueY, valueZ);
             v.x = rgb.r;
             v.y = rgb.g;
@@ -332,7 +332,7 @@ static SensorValues getValue(const json j, const PhyPhoxSensor::Sensor sensor) {
     return v;
 }
 
-float PhyPhoxSensor::calculateOutputVoltage(float rawValue, float rawMin, float rawMax) {
+float PhoneSensor::calculateOutputVoltage(float rawValue, float rawMin, float rawMax) {
     switch (voltageMode) {
         case VoltageMode::BIPOLAR:
             return scaleAndClamp(rawValue, rawMin, rawMax, -5.0f, 5.0f);
@@ -342,7 +342,7 @@ float PhyPhoxSensor::calculateOutputVoltage(float rawValue, float rawMin, float 
     }
 }
 
-PhyPhoxSensor::Status PhyPhoxSensor::getStatus(bool hasError, bool isMeasuring) {
+PhoneSensor::Status PhoneSensor::getStatus(bool hasError, bool isMeasuring) {
     if (hasError) {
         return ERROR;
     }
@@ -354,13 +354,13 @@ PhyPhoxSensor::Status PhyPhoxSensor::getStatus(bool hasError, bool isMeasuring) 
     return NOT_MEASURING;
 }
 
-void PhyPhoxSensor::setStatusLedColor(float red, float green, float blue) {
+void PhoneSensor::setStatusLedColor(float red, float green, float blue) {
     lights[STATUS_LIGHT_RED].setBrightness(red);
     lights[STATUS_LIGHT_GREEN].setBrightness(green);
     lights[STATUS_LIGHT_BLUE].setBrightness(blue);
 }
 
-void PhyPhoxSensor::updateLedColor() {
+void PhoneSensor::updateLedColor() {
     switch (status)
     {
         case INIT:
@@ -383,7 +383,7 @@ void PhyPhoxSensor::updateLedColor() {
 
 // TODO will not work correctly with more than one module
 
-void fetchHttpAsync(PhyPhoxSensor* module, int requestId) {
+void fetchHttpAsync(PhoneSensor* module, int requestId) {
     if (module->debug) {
 	    cout << "fetchHttpAsync" << endl;
     }
@@ -474,7 +474,7 @@ void fetchHttpAsync(PhyPhoxSensor* module, int requestId) {
     module->isFetching = false;
 }
 
-json_t* PhyPhoxSensor::dataToJson() {
+json_t* PhoneSensor::dataToJson() {
     json_t* rootJson = json_object();
     json_object_set_new(rootJson, ipJsonKey.c_str(), json_string(ip.c_str()));
     json_object_set_new(rootJson, sensorModeParamJsonKey.c_str(), json_integer(sensorModeParam));
@@ -495,7 +495,7 @@ json_t* PhyPhoxSensor::dataToJson() {
     return rootJson;
 }
 
-void PhyPhoxSensor::dataFromJson(json_t* rootJson)  {
+void PhoneSensor::dataFromJson(json_t* rootJson)  {
     if (debug) {
         char* jsonStr = json_dumps(rootJson, JSON_INDENT(2));
         cout << "Loading JSON: " << jsonStr << endl;
@@ -548,7 +548,7 @@ void PhyPhoxSensor::dataFromJson(json_t* rootJson)  {
     loadedFromJson = true;
 }
 
-void PhyPhoxSensor::initSensor() {
+void PhoneSensor::initSensor() {
     initUrl();
     if (loadedFromJson) {
         initLimitsFromJson();
@@ -557,7 +557,7 @@ void PhyPhoxSensor::initSensor() {
     }
 }
 
-void PhyPhoxSensor::process(const ProcessArgs& args) {
+void PhoneSensor::process(const ProcessArgs& args) {
 		timeSinceLastRequest += args.sampleTime;
 		if (!isFetching && timeSinceLastRequest >= sampleRate) {
             if (sensorModeParam != sensor) {
@@ -598,4 +598,4 @@ void PhyPhoxSensor::process(const ProcessArgs& args) {
 		outputs[OUT_Z].setVoltage(outZ);
 }
 
-Model* modelPhyPhoxSensor = createModel<PhyPhoxSensor, PhyPhoxWidget>("PhyPhoxSensor");
+Model* modelPhoneSensor = createModel<PhoneSensor, PhoneSensorWidget>("PhoneSensor");

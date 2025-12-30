@@ -1,6 +1,5 @@
 #pragma once
 #include "../plugin.hpp"
-//#include "PhyPhoxWidget.hpp"
 #include <curl/curl.h>
 #include <thread>
 #include <atomic>
@@ -16,9 +15,9 @@ using namespace std;
 
 using namespace rack;
 
-struct PhyPhoxWidget;
+struct PhoneSensorWidget;
 
-struct PhyPhoxSensor : Module {
+struct PhoneSensor : Module {
 	enum ParamId {
 		PARAMS_LEN
 	};
@@ -188,11 +187,11 @@ struct PhyPhoxSensor : Module {
 		return a.requestId > b.requestId;  // Min-heap
 	}};
 
-    PhyPhoxWidget* widget;
+    PhoneSensorWidget* widget;
 
-    PhyPhoxSensor();
+    PhoneSensor();
 
-    void setWidget(PhyPhoxWidget* widgetParam);
+    void setWidget(PhoneSensorWidget* widgetParam);
 
     void initUrl();
     void initLimitsFromDefaults();
