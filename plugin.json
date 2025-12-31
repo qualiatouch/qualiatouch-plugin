@@ -24,16 +24,17 @@
     {
       "slug": "PhoneSensor",
       "name": "Phone Sensor",
-      "description": "Receives smartphone sensor data from PhyPhox app",
+      "description": "Receives smartphone sensor data from PhyPhox app to command CV signals.",
       "manualUrl": "https://github.com/qualiatouch/qualiatouch-plugin/blob/master/doc/phonesensor.md",
       "tags": [
         "External"
       ]
     },
     {
-      "slug": "KinectSensor",
-      "name": "KinectSensor",
-      "description": "Receive data from Kinect sensor. Not affiliated with Kinect nor Microsoft.",
+      "slug": "DepthCamSensor",
+      "name": "Depth Cam Sensor",
+      "description": "Receive data from Kinect sensor to command CV signals with your hand. Not affiliated with Kinect nor Microsoft.",
+      "manualUrl": "https://github.com/qualiatouch/qualiatouch-plugin/blob/master/doc/depthcam.md",
       "tags": [
         "External"
       ]

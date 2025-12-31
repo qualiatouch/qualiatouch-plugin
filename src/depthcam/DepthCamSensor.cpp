@@ -1,4 +1,4 @@
-#include "KinectSensor.hpp"
+#include "DepthCamSensor.hpp"
 #include "../util/utils.hpp"
 
 using namespace std;
@@ -17,7 +17,7 @@ float upperThreshold = 45 * 10.f;
 
 bool thresholdPassed = false;
 
-KinectSensor::KinectSensor() {
+DepthCamSensor::DepthCamSensor() {
     config(NUM_PARAMS, 0, NUM_OUTPUTS);
 
     configParam(THRESHOLD_PARAM, 100.f, 1000.f, 500.f, "Depth threshold", " mm");
@@ -43,18 +43,18 @@ KinectSensor::KinectSensor() {
     startKinectThread();
 }
 
-KinectSensor::~KinectSensor() {
+DepthCamSensor::~DepthCamSensor() {
     running = false;
     if (kinectThread.joinable()) {
         kinectThread.join();
     }
 }
 
-int KinectSensor::toDegrees(TiltDegrees tilt) {
+int DepthCamSensor::toDegrees(TiltDegrees tilt) {
     return tilt * 5;
 }
 
-void KinectSensor::startKinectThread() {
+void DepthCamSensor::startKinectThread() {
     kinectThread = std::thread([this]() {
         if (debug) {
             cout << "starting device" << endl;
@@ -99,7 +99,7 @@ void KinectSensor::startKinectThread() {
     }
 }
 
-void KinectSensor::process(const ProcessArgs& args) {
+void DepthCamSensor::process(const ProcessArgs& args) {
     if (!hasDevice) {
         return;
     }
@@ -152,4 +152,4 @@ void KinectSensor::process(const ProcessArgs& args) {
     timeSinceLastLoop = 0.0f;
 }
 
-Model* modelKinectSensor = createModel<KinectSensor, KinectSensorWidget>("KinectSensor");
+Model* modelDepthCamSensor = createModel<DepthCamSensor, DepthCamSensorWidget>("DepthCamSensor");

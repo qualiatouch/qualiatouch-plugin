@@ -1,22 +1,22 @@
-#include "KinectSensorWidget.hpp"
+#include "DepthCamSensorWidget.hpp"
 
-KinectSensorWidget::KinectSensorWidget(KinectSensor* moduleParam) {
+DepthCamSensorWidget::DepthCamSensorWidget(DepthCamSensor* moduleParam) {
     module = moduleParam;
     setModule(module);
-    setPanel(createPanel(asset::plugin(pluginInstance, "res/kinect.svg")));
+    setPanel(createPanel(asset::plugin(pluginInstance, "res/depthcam-sensor.svg")));
 
     addChild(createWidget<ScrewSilver>(Vec(0, 0)));
     addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH * 2, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
-    addParam(createParamCentered<Trimpot>(mm2px(Vec(7.625, 110)), module, KinectSensor::THRESHOLD_PARAM));
+    addParam(createParamCentered<Trimpot>(mm2px(Vec(7.625, 110)), module, DepthCamSensor::THRESHOLD_PARAM));
 
-    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 30)), module, KinectSensor::OUT_HAND_X));
-    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 50)), module, KinectSensor::OUT_HAND_Y));
-    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 70)), module, KinectSensor::OUT_HAND_DEPTH));
-    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 90)), module, KinectSensor::OUT_HAND_DEPTH_THRESHOLD));
+    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 30)), module, DepthCamSensor::OUT_HAND_X));
+    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 50)), module, DepthCamSensor::OUT_HAND_Y));
+    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 70)), module, DepthCamSensor::OUT_HAND_DEPTH));
+    addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(7.625, 90)), module, DepthCamSensor::OUT_HAND_DEPTH_THRESHOLD));
 }
 
-void KinectSensorWidget::appendContextMenu(Menu* menu) {
+void DepthCamSensorWidget::appendContextMenu(Menu* menu) {
     menu->addChild(new MenuSeparator);
     menu->addChild(createIndexPtrSubmenuItem("Sensor tilt",
         {

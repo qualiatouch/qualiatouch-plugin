@@ -10,15 +10,15 @@ QualiaTouch is about giving the machine perception and action capabilities with 
 
 - PhoneSensor module : retrieves sensor data from the Phyphox app. Not affiliated with PhyPhox, just using their awesome app. Documentation [here](doc/phonesensor.md).
 
-## KinectSensor module
+## DepthCamSensor module
 
-- KinectSensor : retrieves hand position and depth from the Kinect sensor. This plugin is not affiliated with Kinect or Microsoft in any way. 🚧 Still experimental 🚧 Documentation [here](doc/kinect.md).
+- DepthCamSensor module : retrieves hand position and depth from the Kinect sensor from Microsoft. This plugin is not affiliated with Kinect or Microsoft in any way. 🚧 Still experimental 🚧 Documentation [here](doc/depthcam.md).
 
 ## DMX module
 
-If you know about the DMX protocol, then you've already understood what this module does.
+If you know about the DMX512 protocol, then you've already understood what this module does.
 
-- DMX OUT 1 : allows to send DMX data on one channel from the computer. You'll need an USB -> DMX OUT adapter and an appropriate driver. 🚧 Still experimental 🚧 Documentation [here](doc/dmx.md).
+- DMX OUT 1 : allows to send DMX data on one channel from the computer. You'll need an USB -> DMX OUT adapter and an appropriate driver. Documentation [here](doc/dmx.md).
 
 ## Contributing
 

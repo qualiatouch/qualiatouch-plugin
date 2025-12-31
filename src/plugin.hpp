@@ -7,4 +7,4 @@ extern Plugin* pluginInstance;
 
 extern Model *modelDmxOut1;
 extern Model *modelPhoneSensor;
-extern Model *modelKinectSensor;
+extern Model *modelDepthCamSensor;

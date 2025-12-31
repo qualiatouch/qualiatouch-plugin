@@ -1,6 +1,6 @@
 #pragma once
 #include "../plugin.hpp"
-#include "KinectSensorWidget.hpp"
+#include "DepthCamSensorWidget.hpp"
 #include "HandTracker.hpp"
 #include <thread>
 #include <atomic>
@@ -19,7 +19,7 @@ using namespace std;
 
 using namespace rack;
 
-struct KinectSensor : Module {
+struct DepthCamSensor : Module {
     enum ParamIds {
         THRESHOLD_PARAM,
         NUM_PARAMS
@@ -61,8 +61,8 @@ struct KinectSensor : Module {
     TiltDegrees tiltRequest = TILT_0;
     TiltDegrees currentTilt = TILT_0;
 
-    KinectSensor();
-    ~KinectSensor();
+    DepthCamSensor();
+    ~DepthCamSensor();
 
     void startKinectThread();
     void process(const ProcessArgs& args) override;

@@ -2,12 +2,6 @@
 
 The DMX modules allow you to send DMX data to lighting fixtures in real life, from signals in your modular synth patch.
 
-## Important
-
-🚧 THOSE MODULES ARE STILL EXPERIMENTAL 🚧
-
-There is no guarantee of any kind. Use at your own risk.
-
 ## Requirements
 
 - An USB -> DMX OUT adapter

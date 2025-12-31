@@ -1,4 +1,3 @@
-// HandTracker.cpp
 #include <libfreenect.hpp>
 #include <vector>
 #include <mutex>

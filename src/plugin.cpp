@@ -7,5 +7,5 @@ void init(Plugin* p) {
 
     p->addModel(modelDmxOut1);
     p->addModel(modelPhoneSensor);
-    p->addModel(modelKinectSensor);
+    p->addModel(modelDepthCamSensor);
 }
