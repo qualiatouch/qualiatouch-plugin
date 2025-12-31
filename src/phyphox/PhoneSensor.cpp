@@ -546,6 +546,7 @@ void PhoneSensor::dataFromJson(json_t* rootJson)  {
     }
 
     loadedFromJson = true;
+    initSensor();
 }
 
 void PhoneSensor::initSensor() {
