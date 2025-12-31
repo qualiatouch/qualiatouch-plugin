@@ -2,8 +2,9 @@
   "slug": "QualiaTouch",
   "name": "QualiaTouch",
   "version": "2.0.0",
-  "license": "WTFPL",
+  "license": "GPL-3.0-or-later",
   "brand": "",
+  "description": "QualiaTouch is about giving the machine perception and action capabilities with the outside world.",
   "author": "Qualia Touch",
   "authorEmail": "qualiatouch@proton.me",
   "pluginUrl": "https://github.com/qualiatouch/qualiatouch-plugin/blob/master/Readme.md",
@@ -16,10 +17,11 @@
       "slug": "DmxOut1",
       "name": "DMX OUT 1",
       "description": "Send DMX data to one channel",
-      "manualUrl": "",
+      "manualUrl": "https://github.com/qualiatouch/qualiatouch-plugin/blob/master/doc/dmx.md",
       "tags": [
         "External"
-      ]
+      ],
+      "keywords": "dmx dmx512 lighting artnet"
     },
     {
       "slug": "PhoneSensor",
@@ -27,8 +29,10 @@
       "description": "Receives smartphone sensor data from PhyPhox app to command CV signals.",
       "manualUrl": "https://github.com/qualiatouch/qualiatouch-plugin/blob/master/doc/phonesensor.md",
       "tags": [
+        "Controller",
         "External"
-      ]
+      ],
+      "keywords": "phyphox smartphone sensor tilt gyroscope accelerometer"
     },
     {
       "slug": "DepthCamSensor",
@@ -36,8 +40,10 @@
       "description": "Receive data from Kinect sensor to command CV signals with your hand. Not affiliated with Kinect nor Microsoft.",
       "manualUrl": "https://github.com/qualiatouch/qualiatouch-plugin/blob/master/doc/depthcam.md",
       "tags": [
+        "Controller",
         "External"
-      ]
+      ],
+      "keywords": "kinect sensor depth cam hand theremin leap"
     }
   ]
 }

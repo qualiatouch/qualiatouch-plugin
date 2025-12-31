@@ -28,7 +28,7 @@ You can also select the DMX universe you want the data to be sent to. For now, a
 The module will:
   - take a 0-10V CV signal as an input
   - transform it to a value between 0 and 255
-  - emit a DMX signal of 256 channels through the adapter to the fixtures that are connected to it
+  - emit a DMX signal of 512 channels through the adapter to the fixtures that are connected to it
   - the selected address with contain the calculated value, the rest of the channels will have the value 0.
 
 The module displays its DMX channel under the value input.
