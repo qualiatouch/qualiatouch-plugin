@@ -1,25 +1,11 @@
 #pragma once
 #include "../plugin.hpp"
+#include "AbstractDmxModule.hpp"
 #include "DmxOut1Widget.hpp"
-#include <thread>
-#include <atomic>
-#include <iostream>
-#include <mutex>
-#include <queue>
-#include <vector>
-#include <functional>
-
-#include <stdlib.h>
-#include <unistd.h>
-#include <ola/DmxBuffer.h>
-#include <ola/Logging.h>
-#include <ola/client/StreamingClient.h>
-
-using namespace std;
 
 using namespace rack;
 
-struct DmxOut1 : Module {
+struct DmxOut1 : AbstractDmxModule {
     enum ParamId {
         BLACKOUT_BUTTON,
         PARAMS_LEN
@@ -40,58 +26,21 @@ struct DmxOut1 : Module {
         OUTPUTS_LEN
     };
 
-    std::string useOwnDmxAddressJsonKey = "useOwnDmxAddress";
-    std::string dmxAddressJsonKey = "dmxAddress";
-    std::string dmxUniverseJsonKey = "dmxUniverse";
-
-    // module params
-	float timeSinceLastLoop = 0.f;
-    int loop = 0;
-    bool debug = false;
-    bool debugChain = false;
-    float sampleRate = 0.1f;
-
-    // module chain
-    std::vector<DmxOut1*> moduleChain;
-    int moduleIndex = 0;
-    int moduleChainSize = 0;
-    bool recalculateChain = true;
-
     // module working variables
     float input0;
     float clamped0;
     float dmx0;
-    float dmxValue;
+    uint8_t dmxValue;
 
     // blackout button
     dsp::SchmittTrigger blackoutButtonTrigger;
     dsp::SchmittTrigger blackoutInputTrigger;
-    bool blackoutTriggered = false;
-
-    // DMX
-    bool useOwnDmxAddress = false;
-    unsigned int dmxAddress = 1;
-    unsigned int dmxChannel = 1;
-    bool updateDmxChannelDisplayWidget = false;
 
     DmxOut1();
 
-    bool isMaster();
-
-    void onAdd() override;
-    void onRemove() override;
-    bool isLeftModuleDmx();
-    void refreshModuleChain();
-    void onExpanderChange(const ExpanderChangeEvent &e) override;
-    void toggleUseOwnDmxAddress();
-
     void process(const ProcessArgs& arg) override;
 
-    json_t* dataToJson() override;
-    void dataFromJson(json_t* rootJson) override;
+    std::vector<std::pair<unsigned int, uint8_t>> getDmxChannelValues() override;
 
-    bool isSameModel(Module* otherModule);
-
-    int getDmxUniverse();
-    void setDmxUniverse(int universe);
+    bool isSameModel(Module* otherModule) override;
 };

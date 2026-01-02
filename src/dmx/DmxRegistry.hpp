@@ -1,16 +1,24 @@
 #pragma once
 #include "../plugin.hpp"
-#include "DmxOut1.hpp"
+#include "AbstractDmxModule.hpp"
+
 #include <iostream>
+#include <stdlib.h>
+#include <unistd.h>
+#include <ola/DmxBuffer.h>
+#include <ola/Logging.h>
+#include <ola/client/StreamingClient.h>
 
 using namespace std;
 
 using namespace rack;
 
+struct AbstractDmxModule;
+
 class DmxRegistry {
 
 private:
-    std::vector<DmxOut1*> modules;
+    std::vector<AbstractDmxModule*> modules;
 
     ola::DmxBuffer buffer;
 
@@ -26,9 +34,9 @@ private:
 public:
     static DmxRegistry& instance();
 
-    void registerModule(DmxOut1* module);
+    void registerModule(AbstractDmxModule* module);
 
-    void unregisterModule(DmxOut1* module);
+    void unregisterModule(AbstractDmxModule* module);
 
     bool isMaster(int64_t id);
     void trigger(int64_t id);

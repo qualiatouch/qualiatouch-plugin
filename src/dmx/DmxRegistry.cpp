@@ -36,14 +36,14 @@ void DmxRegistry::initOla() {
     }
 }
 
-void DmxRegistry::registerModule(DmxOut1* module) {
+void DmxRegistry::registerModule(AbstractDmxModule* module) {
     if (ola_client == nullptr) {
         initOla();
     }
     modules.push_back(module);
 }
 
-void DmxRegistry::unregisterModule(DmxOut1* module) {
+void DmxRegistry::unregisterModule(AbstractDmxModule* module) {
     modules.erase(
         std::remove(modules.begin(), modules.end(), module),
         modules.end()
@@ -90,7 +90,7 @@ void DmxRegistry::setDmxUniverse(int universe) {
 void DmxRegistry::sendDmx() {
     int nbModules = modules.size();
     for (int i = 0; i < nbModules; i++) {
-        DmxOut1* m = modules.at(i);
+        AbstractDmxModule* m = modules.at(i);
         if (m->blackoutTriggered) {
             if (debug) {
                 cout << "BLACKOUT triggered on module " << i << " - sending blackout" << endl;
@@ -99,10 +99,14 @@ void DmxRegistry::sendDmx() {
             break;
         }
 
-        if (debug) {
-            cout << "   setting channel " << m->dmxChannel << " to DMX value " << m->dmxValue << endl;
+        std::vector<std::pair<unsigned int, uint8_t>> channelValues = m->getDmxChannelValues();
+
+        for (const std::pair<unsigned int, uint8_t>& pair : channelValues) {
+            if (debug) {
+                std::cout << "  Channel " << pair.first << " = " << pair.second << std::endl;
+            }
+            buffer.SetChannel(pair.first, pair.second);
         }
-        buffer.SetChannel(m->dmxChannel, m->dmxValue);
     }
 
     if (debug) {
