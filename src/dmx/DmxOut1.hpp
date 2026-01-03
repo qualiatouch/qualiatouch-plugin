@@ -28,12 +28,6 @@ struct DmxOut1 : AbstractDmxModule {
         OUTPUTS_LEN
     };
 
-    // module working variables
-    float input0;
-    float clamped0;
-    float dmx0;
-    uint8_t dmxValue;
-
     DmxOut1();
 
     const char* getModelSlug() const override;
