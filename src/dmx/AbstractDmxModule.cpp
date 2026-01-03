@@ -218,6 +218,7 @@ void AbstractDmxModule::dataFromJson(json_t* rootJson)  {
     json_t* dmxAddressParamJson = json_object_get(rootJson, dmxAddressJsonKey.c_str());
     if (dmxAddressParamJson) {
         dmxAddress = json_integer_value(dmxAddressParamJson);
+        dmxChannel = dmxAddress;
     }
 
     json_t* dmxUniverseParamJson = json_object_get(rootJson, dmxUniverseJsonKey.c_str());
