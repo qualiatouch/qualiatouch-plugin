@@ -26,12 +26,12 @@ private:
 
     unsigned int dmxUniverse = 1;
 
-    bool debug = false;
-
     DmxRegistry();
     void initOla();
 
 public:
+    bool debug = true;
+
     static DmxRegistry& instance();
 
     void registerModule(AbstractDmxModule* module);

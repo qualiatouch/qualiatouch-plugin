@@ -32,5 +32,6 @@ void AbstractDmxModuleWidget::appendContextMenu(Menu* menu) {
         menu->addChild(createMenuLabel("Channel " + std::to_string(dmxModule->dmxChannel)));
         menu->addChild(createMenuLabel("Use own address " + std::to_string(dmxModule->useOwnDmxAddress)));
         menu->addChild(rack::createBoolPtrMenuItem("Debug Chain", "", &dmxModule->debugChain));
+        menu->addChild(rack::createBoolPtrMenuItem("Debug Registry", "", &DmxRegistry::instance().debug));
     }
 }
