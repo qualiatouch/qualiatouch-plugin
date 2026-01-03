@@ -1,11 +1,21 @@
 #include "AbstractDmxModule.hpp"
 
-AbstractDmxModule::AbstractDmxModule() {}
+AbstractDmxModule::AbstractDmxModule(int nbInputs) {
+    nbDmxInputs = nbInputs;
+    channelsValues.resize(nbDmxInputs);
+    for (int i = 0; i < nbDmxInputs; i++) {
+        channelsValues[i] = {0, 0};
+    }
+}
 
 void AbstractDmxModule::configBlackout(uint8_t lightId, uint8_t buttonId, uint8_t inputId) {
     blackoutLightId = lightId;
     blackoutButtonId = buttonId;
     blackoutInputId = inputId;
+
+    configLight(blackoutLightId, "Blackout triggered - deactivate it in the menu");
+    configButton(blackoutButtonId, "Blackout");
+    configInput(blackoutInputId, "Blackout (Trigger or gate to blackout)");
 }
 
 void AbstractDmxModule::onAdd() {
@@ -214,6 +224,11 @@ void AbstractDmxModule::dataFromJson(json_t* rootJson)  {
     if (dmxUniverseParamJson) {
         DmxRegistry::instance().setDmxUniverse(json_integer_value(dmxUniverseParamJson));
     }
+}
+
+bool AbstractDmxModule::isSameModel(Module* otherModule) const {
+    return otherModule->model->plugin->name == "QualiaTouch"
+        && otherModule->model->slug == getModelSlug();
 }
 
 void AbstractDmxModule::process(const ProcessArgs& args) {

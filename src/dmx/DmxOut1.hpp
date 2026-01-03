@@ -6,6 +6,8 @@
 using namespace rack;
 
 struct DmxOut1 : AbstractDmxModule {
+    static const constexpr char* MODEL_SLUG = "DmxOut1";
+
     enum ParamId {
         BLACKOUT_BUTTON,
         PARAMS_LEN
@@ -34,5 +36,5 @@ struct DmxOut1 : AbstractDmxModule {
 
     DmxOut1();
 
-    bool isSameModel(Module* otherModule) override;
+    const char* getModelSlug() const override;
 };

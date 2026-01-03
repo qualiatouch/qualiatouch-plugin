@@ -54,7 +54,7 @@ struct AbstractDmxModule : rack::engine::Module {
     uint8_t blackoutButtonId;
     uint8_t blackoutInputId;
 
-    AbstractDmxModule();
+    AbstractDmxModule(int nbInputs);
 
     void configBlackout(uint8_t lightId, uint8_t buttonId, uint8_t inputId);
     bool isMaster();
@@ -68,7 +68,8 @@ struct AbstractDmxModule : rack::engine::Module {
     void setDmxUniverse(int universe);
 
     void process(const ProcessArgs& args) override;
-    virtual bool isSameModel(Module* otherModule) = 0;
+    bool isSameModel(Module* otherModule) const;
+    virtual const char* getModelSlug() const = 0;
 
     json_t* dataToJson() override;
     void dataFromJson(json_t* rootJson) override;
