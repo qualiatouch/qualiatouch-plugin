@@ -17,5 +17,7 @@ struct DmxAddressField : ui::TextField {
 struct DmxAddressMenuItem : ui::MenuItem {
     AbstractDmxModule* module;
 
+    DmxAddressMenuItem(AbstractDmxModule* moduleParam);
+
     Menu* createChildMenu() override;
 };

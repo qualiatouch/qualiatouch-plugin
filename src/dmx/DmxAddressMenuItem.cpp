@@ -31,6 +31,12 @@ void DmxAddressField::onSelectKey(const event::SelectKey& event) {
     }
 }
 
+DmxAddressMenuItem::DmxAddressMenuItem(AbstractDmxModule* moduleParam) {
+    module = moduleParam;
+    text = "DMX Address";
+    rightText = std::to_string(module->dmxAddress) + " " + RIGHT_ARROW;
+}
+
 Menu* DmxAddressMenuItem::createChildMenu() {
     Menu* menu = new Menu;
 

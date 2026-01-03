@@ -29,6 +29,12 @@ void DmxUniverseField::onSelectKey(const event::SelectKey& event) {
     }
 }
 
+DmxUniverseMenuItem::DmxUniverseMenuItem(AbstractDmxModule* moduleParam) {
+    module = module;
+    text = "DMX universe";
+    rightText = std::to_string(module->getDmxUniverse()) + " " + RIGHT_ARROW;
+}
+
 Menu* DmxUniverseMenuItem::createChildMenu() {
     Menu* menu = new Menu;
 

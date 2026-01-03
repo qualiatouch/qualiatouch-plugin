@@ -17,5 +17,7 @@ struct DmxUniverseField : ui::TextField {
 struct DmxUniverseMenuItem : ui::MenuItem {
     AbstractDmxModule* module;
 
+    DmxUniverseMenuItem(AbstractDmxModule* moduleParam);
+
     Menu* createChildMenu() override;
 };

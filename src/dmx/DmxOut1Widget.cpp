@@ -29,18 +29,10 @@ void DmxOut1Widget::appendContextMenu(Menu* menu) {
     menu->addChild(createMenuLabel("DMX module settings"));
 
     UseOwnDmxAddressItem* useOwnDmxAddressItem = new UseOwnDmxAddressItem(module);
-    useOwnDmxAddressItem->text = "Use own DMX address";
-
-    if (!module->isLeftModuleDmx()) {
-        useOwnDmxAddressItem->disabled = true;
-    }
     menu->addChild(useOwnDmxAddressItem);
 
     if (module->useOwnDmxAddress) {
-        DmxAddressMenuItem* addressItem = new DmxAddressMenuItem;
-        addressItem->text = "DMX Address";
-        addressItem->rightText = std::to_string(module->dmxAddress) + " " + RIGHT_ARROW;
-        addressItem->module = module;
+        DmxAddressMenuItem* addressItem = new DmxAddressMenuItem(module);
         menu->addChild(addressItem);
     }
 
@@ -48,12 +40,10 @@ void DmxOut1Widget::appendContextMenu(Menu* menu) {
     menu->addChild(rack::createBoolPtrMenuItem("Debug", "", &module->debug));
 
     menu->addChild(new MenuSeparator);
-    menu->addChild(createMenuLabel("DMX universe settings"));
+    menu->addChild(createMenuLabel("DMX global settings"));
     menu->addChild(createMenuLabel(" (common to all modules)"));
-    DmxUniverseMenuItem* universeItem = new DmxUniverseMenuItem;
-    universeItem->text = "DMX universe";
-    universeItem->rightText = std::to_string(module->getDmxUniverse()) + " " + RIGHT_ARROW;
-    universeItem->module = module;
+
+    DmxUniverseMenuItem* universeItem = new DmxUniverseMenuItem(module);
     menu->addChild(universeItem);
 
     // debug info
