@@ -99,11 +99,9 @@ void DmxRegistry::sendDmx() {
             break;
         }
 
-        std::vector<std::pair<unsigned int, uint8_t>> channelValues = m->getDmxChannelValues();
-
-        for (const std::pair<unsigned int, uint8_t>& pair : channelValues) {
+        for (const std::pair<unsigned int, uint8_t>& pair : m->channelsValues) {
             if (debug) {
-                std::cout << "  Channel " << pair.first << " = " << pair.second << std::endl;
+                std::cout << "  channel " << pair.first << " value " << (int) pair.second << std::endl;
             }
             buffer.SetChannel(pair.first, pair.second);
         }

@@ -2,6 +2,12 @@
 
 AbstractDmxModule::AbstractDmxModule() {}
 
+void AbstractDmxModule::configBlackout(uint8_t lightId, uint8_t buttonId, uint8_t inputId) {
+    blackoutLightId = lightId;
+    blackoutButtonId = buttonId;
+    blackoutInputId = inputId;
+}
+
 void AbstractDmxModule::onAdd() {
     recalculateChain = true;
     DmxRegistry::instance().registerModule(this);
@@ -37,14 +43,14 @@ void AbstractDmxModule::refreshModuleChain() {
         useOwnDmxAddress = true;
         dmxAddress = dmxChannel;
         if (debugChain) {
-            cout << "module " << getId() << " is master" << endl;
+            cout << "module " << getId() << " is first of chain" << endl;
         }
     } else {
         // not master
         moduleChain.push_back(this);
         moduleChainSize = moduleChain.size();
         if (debugChain) {
-            cout << "module " << getId() << " is NOT master" << endl;
+            cout << "module " << getId() << " is NOT first of chain" << endl;
         }
         Module* rightModule = getRightExpander().module;
         if (rightModule && rightModule->getId() == leftModule->getId()) {
@@ -78,6 +84,12 @@ void AbstractDmxModule::refreshModuleChain() {
             relativeCounter = 0;
         }
         m->dmxChannel = address + relativeCounter;
+
+        m->channelsValues[0].first = m->dmxChannel;
+        if (debugChain) {
+            cout << "   (i=" << i << ") channelsValues[0].first = " << channelsValues[0].first << endl;
+        }
+
         m->updateDmxChannelDisplayWidget = true;
         if (debugChain) {
             cout << "       adding module " << m->moduleIndex << " channel " << m->dmxChannel << endl;
@@ -173,15 +185,10 @@ void AbstractDmxModule::setDmxUniverse(int universe) {
 }
 
 json_t* AbstractDmxModule::dataToJson() {
-    cout << "dataToJson() useOwnDmxAddress " << useOwnDmxAddress << endl;
     json_t* rootJson = json_object();
     json_object_set_new(rootJson, dmxAddressJsonKey.c_str(), json_integer(dmxAddress));
     json_object_set_new(rootJson, useOwnDmxAddressJsonKey.c_str(), json_boolean(useOwnDmxAddress));
     json_object_set_new(rootJson, dmxUniverseJsonKey.c_str(), json_integer(getDmxUniverse()));
-
-    char* jsonStr = json_dumps(rootJson, JSON_INDENT(2));
-    cout << "   saving JSON: " << jsonStr << endl;
-    free(jsonStr);
 
     return rootJson;
 }
@@ -207,4 +214,57 @@ void AbstractDmxModule::dataFromJson(json_t* rootJson)  {
     if (dmxUniverseParamJson) {
         DmxRegistry::instance().setDmxUniverse(json_integer_value(dmxUniverseParamJson));
     }
+}
+
+void AbstractDmxModule::process(const ProcessArgs& args) {
+    if (moduleChainSize < 1 || recalculateChain) {
+        if (debugChain) {
+            cout << "module " << getId() << " : we need to recalculate module chain (chainSize " << moduleChainSize << "; recalculate " << (recalculateChain ? "t" : "f") << ") calling refreshModuleChain()" << endl;
+        }
+        refreshModuleChain();
+    }
+
+    lights[blackoutLightId].setBrightness(blackoutTriggered ? 1.f : 0.f);
+
+    if (blackoutButtonTrigger.process(params[blackoutButtonId].getValue())
+        || blackoutInputTrigger.process(inputs[blackoutInputId].getVoltage())) {
+        blackoutTriggered = true;
+        return;
+    }
+
+    timeSinceLastLoop += args.sampleTime;
+    if (timeSinceLastLoop < sampleRate) {
+        return;
+    }
+
+    if (debug) {
+        //cout << "loop " << loop << "(" << timeSinceLastLoop << ")" << " module " << moduleIndex << " - begin" << endl;
+    }
+
+    for (int i = 0; i < nbDmxInputs; i++) {
+        if (debug) {
+            cout << "244 module " << getId() << " input " << i;
+        }
+        if (inputs[i].isConnected()) {
+            float voltage = inputs[i].getVoltage();
+            float clamped = clamp(voltage, 0.f, 10.f);
+            uint8_t dmxValue = static_cast<uint8_t>(clamped * 255.f / 10.f);
+            if (debug) {
+                cout << " : " << i + 1 << " -> " << (int) dmxValue << endl;
+            }
+
+            channelsValues[i].second = dmxValue;
+        } else {
+            if (debug) {
+                cout << " : not connected" << endl;
+            }
+        }
+    }
+
+    if (isMaster()) {
+        DmxRegistry::instance().trigger(getId());
+    }
+
+    timeSinceLastLoop = 0.0f;
+    loop++;
 }

@@ -17,7 +17,7 @@
 #include <ola/client/StreamingClient.h>
 
 using namespace std;
-
+using namespace dsp;
 using namespace rack;
 
 struct AbstractDmxModule : rack::engine::Module {
@@ -38,15 +38,25 @@ struct AbstractDmxModule : rack::engine::Module {
     int moduleChainSize = 0;
     bool recalculateChain = true;
 
-    // DMX
+    // DMX address & channels
     bool useOwnDmxAddress = false;
     unsigned int dmxAddress = 1;
     unsigned int dmxChannel = 1;
     bool updateDmxChannelDisplayWidget = false;
+    std::vector<std::pair<unsigned int, uint8_t>> channelsValues;
+    uint8_t nbDmxInputs;
+
+    // DMX blackout
     bool blackoutTriggered = false;
+    SchmittTrigger blackoutButtonTrigger;
+    SchmittTrigger blackoutInputTrigger;
+    uint8_t blackoutLightId;
+    uint8_t blackoutButtonId;
+    uint8_t blackoutInputId;
 
     AbstractDmxModule();
 
+    void configBlackout(uint8_t lightId, uint8_t buttonId, uint8_t inputId);
     bool isMaster();
     void onAdd() override;
     void onRemove() override;
@@ -57,9 +67,8 @@ struct AbstractDmxModule : rack::engine::Module {
     int getDmxUniverse();
     void setDmxUniverse(int universe);
 
-    virtual void process(const ProcessArgs& arg) override = 0;
+    void process(const ProcessArgs& args) override;
     virtual bool isSameModel(Module* otherModule) = 0;
-    virtual std::vector<std::pair<unsigned int, uint8_t>> getDmxChannelValues() = 0;
 
     json_t* dataToJson() override;
     void dataFromJson(json_t* rootJson) override;

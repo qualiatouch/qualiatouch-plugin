@@ -32,15 +32,7 @@ struct DmxOut1 : AbstractDmxModule {
     float dmx0;
     uint8_t dmxValue;
 
-    // blackout button
-    dsp::SchmittTrigger blackoutButtonTrigger;
-    dsp::SchmittTrigger blackoutInputTrigger;
-
     DmxOut1();
-
-    void process(const ProcessArgs& arg) override;
-
-    std::vector<std::pair<unsigned int, uint8_t>> getDmxChannelValues() override;
 
     bool isSameModel(Module* otherModule) override;
 };
