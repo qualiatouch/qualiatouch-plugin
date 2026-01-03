@@ -17,4 +17,4 @@ const char* DmxOut1::getModelSlug() const {
     return MODEL_SLUG;
 }
 
-Model* modelDmxOut1 = createModel<DmxOut1, DmxOut1Widget>("DmxOut1");
+Model* modelDmxOut1 = createModel<DmxOut1, DmxOut1Widget>(DmxOut1::MODEL_SLUG);
