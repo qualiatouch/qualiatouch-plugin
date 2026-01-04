@@ -158,6 +158,9 @@ struct PhoneSensor : Module {
     float minZParam;
     float maxZParam;
 
+    bool sensorHasY = true;
+    bool sensorHasZ = true;
+
     bool loadedFromJson = false;
 
     float sampleRate = 0.01f;
@@ -197,6 +200,8 @@ struct PhoneSensor : Module {
     void initLimitsFromDefaults();
     void initLimitsFromJson();
     void initSensor();
+    bool initSensorHasY();
+    bool initSensorHasZ();
 
     void setIpAddress(std::string newIp);
 

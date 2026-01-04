@@ -556,6 +556,43 @@ void PhoneSensor::initSensor() {
     } else {
         initLimitsFromDefaults();
     }
+
+    sensorHasY = initSensorHasY();
+    sensorHasZ = initSensorHasZ();
+    if (debug) {
+        cout << "sensor " << to_string(sensor) << " sensorHasY " << sensorHasY << " sensorHasZ " << sensorHasZ << endl;
+    }
+}
+
+bool PhoneSensor::initSensorHasY() {
+    switch (sensor) {
+        case PhoneSensor::SENSOR_MAG:
+        case PhoneSensor::SENSOR_ACC:
+        case PhoneSensor::SENSOR_GYR:
+        case PhoneSensor::SENSOR_COLOR:
+        case PhoneSensor::SENSOR_TILT:
+            return true;
+        case PhoneSensor::SENSOR_SOUND:
+        case PhoneSensor::SENSOR_LIGHT:
+        default:
+            return false;
+            return false;
+    }
+}
+
+bool PhoneSensor::initSensorHasZ() {
+    switch (sensor) {
+        case PhoneSensor::SENSOR_MAG:
+        case PhoneSensor::SENSOR_ACC:
+        case PhoneSensor::SENSOR_GYR:
+        case PhoneSensor::SENSOR_COLOR:
+            return true;
+        case PhoneSensor::SENSOR_SOUND:
+        case PhoneSensor::SENSOR_TILT:
+        case PhoneSensor::SENSOR_LIGHT:
+        default:
+            return false;
+    }
 }
 
 void PhoneSensor::process(const ProcessArgs& args) {
@@ -594,9 +631,19 @@ void PhoneSensor::process(const ProcessArgs& args) {
         if (debug) {
             // cout << "sending voltages outX=" << outX << " outY=" << outY << " outZ" << outZ << endl;
         }
+
 		outputs[OUT_X].setVoltage(outX);
-		outputs[OUT_Y].setVoltage(outY);
-		outputs[OUT_Z].setVoltage(outZ);
+        if (sensorHasY) {
+		    outputs[OUT_Y].setVoltage(outY);
+        } else {
+            outputs[OUT_Y].setVoltage(0);
+        }
+
+        if (sensorHasZ) {
+		    outputs[OUT_Z].setVoltage(outZ);
+        } else {
+		    outputs[OUT_Z].setVoltage(0);
+        }
 }
 
 Model* modelPhoneSensor = createModel<PhoneSensor, PhoneSensorWidget>("PhoneSensor");
