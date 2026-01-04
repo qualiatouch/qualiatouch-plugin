@@ -21,6 +21,7 @@ If you know about the DMX512 protocol, then you've already understood what these
 - DMX OUT 1 : allows to send DMX data on one channel from the computer.
 - DMX OUT 2 : same with 2 channels.
 - DMX OUT 4 : same with 4 channels.
+- DMX SonicPulse Wash 1208 : controls the SonicPulse with 10 DMX channels
 
 ## Contributing
 

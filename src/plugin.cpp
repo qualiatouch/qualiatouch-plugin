@@ -8,6 +8,7 @@ void init(Plugin* p) {
     p->addModel(modelDmxOut1);
     p->addModel(modelDmxOut2);
     p->addModel(modelDmxOut4);
+    p->addModel(modelSonicpulseWash10);
     p->addModel(modelPhoneSensor);
     p->addModel(modelDepthCamSensor);
 }

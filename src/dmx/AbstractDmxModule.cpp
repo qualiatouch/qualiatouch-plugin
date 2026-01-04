@@ -282,7 +282,7 @@ void AbstractDmxModule::configDmxInputs() {
 void AbstractDmxModule::process(const ProcessArgs& args) {
     if (moduleChainSize < 1 || recalculateChain) {
         if (debugChain) {
-            cout << "module " << getId() << " : we need to recalculate module chain (chainSize " << moduleChainSize << "; recalculate " << (recalculateChain ? "t" : "f") << ") calling refreshModuleChain()" << endl;
+            cout << "module " << getId() << " : we need to recalculate module chain (chainSize " << moduleChainSize << "; recalculate " << (recalculateChain ? "t" : "f") << ") calling refreshModuleChain() - nbDmxInputs = " << (int) nbDmxInputs << endl;
         }
         refreshModuleChain();
     }
