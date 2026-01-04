@@ -6,6 +6,7 @@ void init(Plugin* p) {
     pluginInstance = p;
 
     p->addModel(modelDmxOut1);
+    p->addModel(modelSonicpulseWash10);
     p->addModel(modelPhoneSensor);
     p->addModel(modelDepthCamSensor);
 }

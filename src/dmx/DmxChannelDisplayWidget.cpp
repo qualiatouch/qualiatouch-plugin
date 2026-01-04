@@ -16,7 +16,7 @@ void DmxChannelDisplayWidget::step() {
     if (module->updateDmxChannelDisplayWidget) {
         module->updateDmxChannelDisplayWidget = false;
         if (module->debug) {
-            cout << "updating channel display widget" << endl;
+            cout << "updating channel display widget - channel = " << module->dmxChannel << endl;
         }
         parentFrameBufferWidget->setDirty();
     }

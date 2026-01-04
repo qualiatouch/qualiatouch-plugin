@@ -19,6 +19,7 @@ QualiaTouch is about giving the machine perception and action capabilities with 
 If you know about the DMX512 protocol, then you've already understood what this module does.
 
 - DMX OUT 1 : allows to send DMX data on one channel from the computer. You'll need an USB -> DMX OUT adapter and an appropriate driver. Documentation [here](doc/dmx.md).
+- DMX SonicPulse Wash 1208 : controls the SonicPulse with 10 DMX channels
 
 ## Contributing
 

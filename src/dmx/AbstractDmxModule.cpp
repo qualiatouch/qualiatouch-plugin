@@ -89,20 +89,34 @@ void AbstractDmxModule::refreshModuleChain() {
     // remplissage de la chaîne
     while (m && i < 20) { // todo const limit
         m->moduleIndex = i;
+        uint8_t nbDmxInputs = m->nbDmxInputs;
+        if (debugChain) {
+            cout << "moduleIndex " << m->moduleIndex << " useOwnDmxAddress " << to_string(m->useOwnDmxAddress) << " with " << (int) nbDmxInputs << " dmx inputs" << endl;
+        }
+
         if (m->useOwnDmxAddress) {
             address = m->dmxAddress;
             relativeCounter = 0;
         }
         m->dmxChannel = address + relativeCounter;
 
-        m->channelsValues[0].first = m->dmxChannel;
         if (debugChain) {
-            cout << "   (i=" << i << ") channelsValues[0].first = " << channelsValues[0].first << endl;
+            cout << "   dmxChannel of module is " << dmxChannel << endl;
+        }
+
+        for (int i = 0; i < nbDmxInputs; i++) {
+            if (debugChain) {
+                cout << "       i=" << i << " channel " << m->dmxChannel + i << endl;
+            }
+            m->channelsValues[i].first = m->dmxChannel + i;
+        }
+        if (debugChain) {
+            cout << "   address is now " << address << endl;
         }
 
         m->updateDmxChannelDisplayWidget = true;
         if (debugChain) {
-            cout << "       adding module " << m->moduleIndex << " channel " << m->dmxChannel << endl;
+            cout << "       adding module of index " << m->moduleIndex << " with channel " << m->dmxChannel << " to the chain" << endl;
         }
         moduleChain.push_back(m);
         if (debugChain) {
@@ -136,7 +150,10 @@ void AbstractDmxModule::refreshModuleChain() {
         }
 
         i++;
-        relativeCounter++;
+        relativeCounter += nbDmxInputs;
+        if (debugChain) {
+            cout << "   relative counter is now " << relativeCounter << " (added nbDmxInputs " << (int) nbDmxInputs << ")" << endl;
+        }
     }
 
     moduleChainSize = moduleChain.size();
@@ -235,7 +252,7 @@ bool AbstractDmxModule::isSameModel(Module* otherModule) const {
 void AbstractDmxModule::process(const ProcessArgs& args) {
     if (moduleChainSize < 1 || recalculateChain) {
         if (debugChain) {
-            cout << "module " << getId() << " : we need to recalculate module chain (chainSize " << moduleChainSize << "; recalculate " << (recalculateChain ? "t" : "f") << ") calling refreshModuleChain()" << endl;
+            cout << "module " << getId() << " : we need to recalculate module chain (chainSize " << moduleChainSize << "; recalculate " << (recalculateChain ? "t" : "f") << ") calling refreshModuleChain() - nbDmxInputs = " << (int) nbDmxInputs << endl;
         }
         refreshModuleChain();
     }
