@@ -5,8 +5,8 @@ DepthCamSensorWidget::DepthCamSensorWidget(DepthCamSensor* moduleParam) {
     setModule(module);
     setPanel(createPanel(asset::plugin(pluginInstance, "res/depthcam-sensor.svg")));
 
-    addChild(createWidget<ScrewSilver>(Vec(0, 0)));
-    addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH * 2, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+    addChild(createWidget<ScrewBlack>(Vec(0, 0)));
+    addChild(createWidget<ScrewBlack>(Vec(RACK_GRID_WIDTH * 2, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
     addParam(createParamCentered<Trimpot>(mm2px(Vec(7.625, 110)), module, DepthCamSensor::THRESHOLD_PARAM));
 

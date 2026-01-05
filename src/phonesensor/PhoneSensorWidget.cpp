@@ -140,8 +140,8 @@ PhoneSensorWidget::PhoneSensorWidget(PhoneSensor* moduleParam) {
 
     setPanel(createPanel(asset::plugin(pluginInstance, "res/phone-sensor.svg")));
 
-    addChild(createWidget<ScrewSilver>(Vec(0, 0)));
-    addChild(createWidget<ScrewSilver>(Vec(RACK_GRID_WIDTH * 2, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
+    addChild(createWidget<ScrewBlack>(Vec(0, 0)));
+    addChild(createWidget<ScrewBlack>(Vec(RACK_GRID_WIDTH * 2, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
 
     addChild(createLightCentered<SmallLight<RedGreenBlueLight>>(mm2px(Vec(7.625, 42.5)), module, PhoneSensor::STATUS_LIGHT_RED));
 
