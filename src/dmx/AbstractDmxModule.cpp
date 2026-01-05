@@ -232,6 +232,12 @@ bool AbstractDmxModule::isSameModel(Module* otherModule) const {
         && otherModule->model->slug == getModelSlug();
 }
 
+void AbstractDmxModule::updateInputsLabels() {
+    for (int i = 0; i < nbDmxInputs; i++) {
+        configInput(i, "channel " + to_string(channelsValues[i].first));
+    }
+}
+
 void AbstractDmxModule::process(const ProcessArgs& args) {
     if (moduleChainSize < 1 || recalculateChain) {
         if (debugChain) {

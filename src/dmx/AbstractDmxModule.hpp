@@ -66,6 +66,7 @@ struct AbstractDmxModule : rack::engine::Module {
     void toggleUseOwnDmxAddress();
     int getDmxUniverse();
     void setDmxUniverse(int universe);
+    void updateInputsLabels();
 
     void process(const ProcessArgs& args) override;
     bool isSameModel(Module* otherModule) const;
