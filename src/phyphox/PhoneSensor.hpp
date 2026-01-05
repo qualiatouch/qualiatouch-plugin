@@ -163,7 +163,7 @@ struct PhoneSensor : Module {
 
     bool loadedFromJson = false;
 
-    float sampleRate = 0.01f;
+    float fetchingPeriod = 0.01f;
     float timeSinceLastRequest = 0.f;
     bool isFetching = false;
 

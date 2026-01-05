@@ -45,7 +45,7 @@ struct DepthCamSensor : Module {
 
     bool debug = false;
 
-    float sampleRate = 0.05f;
+    float processPeriod = 0.05f;
     float timeSinceLastLoop = 0.f;
     int deviceSleep = 50; // ms
     float hysteresisRange = 50; // mm

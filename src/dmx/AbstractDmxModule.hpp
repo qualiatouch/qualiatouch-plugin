@@ -30,7 +30,7 @@ struct AbstractDmxModule : rack::engine::Module {
     int loop = 0;
     bool debug = false;
     bool debugChain = false;
-    float sampleRate = 0.1f;
+    float processPeriod = 1.f/44; // s
 
     // module chain
     std::vector<AbstractDmxModule*> moduleChain;

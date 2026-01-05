@@ -597,7 +597,7 @@ bool PhoneSensor::initSensorHasZ() {
 
 void PhoneSensor::process(const ProcessArgs& args) {
 		timeSinceLastRequest += args.sampleTime;
-		if (!isFetching && timeSinceLastRequest >= sampleRate) {
+        if (!isFetching && timeSinceLastRequest >= fetchingPeriod) {
             if (sensorModeParam != sensor) {
                 initSensor();
             }

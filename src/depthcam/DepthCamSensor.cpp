@@ -105,7 +105,7 @@ void DepthCamSensor::process(const ProcessArgs& args) {
     }
 
     timeSinceLastLoop += args.sampleTime;
-    if (timeSinceLastLoop < sampleRate) {
+    if (timeSinceLastLoop < processPeriod) {
         return;
     }
 
