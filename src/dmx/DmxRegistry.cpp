@@ -103,7 +103,7 @@ void DmxRegistry::sendDmx() {
             if (debug) {
                 std::cout << "  channel " << pair.first << " value " << (int) pair.second << std::endl;
             }
-            buffer.SetChannel(pair.first, pair.second);
+            buffer.SetChannel(pair.first - 1, pair.second);
         }
     }
 
