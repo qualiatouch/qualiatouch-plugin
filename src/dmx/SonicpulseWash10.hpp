@@ -42,5 +42,6 @@ struct SonicpulseWash10 : AbstractDmxModule {
     SonicpulseWash10();
 
     const char* getModelSlug() const override;
+    const vector<std::string> getDmxInputsNames() const override;
 };
 
