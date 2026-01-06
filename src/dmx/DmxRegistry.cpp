@@ -99,7 +99,7 @@ void DmxRegistry::sendDmx() {
             break;
         }
 
-        for (const std::pair<unsigned int, uint8_t>& pair : m->channelsValues) {
+        for (const std::pair<unsigned int, uint8_t>& pair : m->getChannelsValues()) {
             if (debug) {
                 std::cout << "  channel " << pair.first << " value " << (int) pair.second << std::endl;
             }

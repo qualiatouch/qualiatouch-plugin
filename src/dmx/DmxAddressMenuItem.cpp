@@ -16,9 +16,9 @@ void DmxAddressField::onSelectKey(const event::SelectKey& event) {
             return;
         }
         if (module) {
-            module->dmxAddress = dmxAddress;
-            module->dmxChannel = dmxAddress;
-            module->recalculateChain = true;
+            module->setDmxAddress(dmxAddress);
+            module->setDmxChannel(dmxAddress);
+            module->setRecalculateChain(true);
         }
         ui::MenuOverlay* overlay = getAncestorOfType<ui::MenuOverlay>();
         if (overlay) {
@@ -34,14 +34,14 @@ void DmxAddressField::onSelectKey(const event::SelectKey& event) {
 DmxAddressMenuItem::DmxAddressMenuItem(AbstractDmxModule* moduleParam) {
     module = moduleParam;
     text = "DMX Address";
-    rightText = std::to_string(module->dmxAddress) + " " + RIGHT_ARROW;
+    rightText = std::to_string(module->getDmxAddress()) + " " + RIGHT_ARROW;
 }
 
 Menu* DmxAddressMenuItem::createChildMenu() {
     Menu* menu = new Menu;
 
     DmxAddressField* addressField = new DmxAddressField(module);
-    addressField->text = std::to_string(module->dmxAddress);
+    addressField->text = std::to_string(module->getDmxAddress());
     menu->addChild(addressField);
 
     return menu;

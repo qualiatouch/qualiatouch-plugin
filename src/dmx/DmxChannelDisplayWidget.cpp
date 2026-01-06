@@ -46,7 +46,7 @@ void DmxChannelDisplayWidget::draw(const DrawArgs& args) {
         return;
     }
 
-    if (module->useOwnDmxAddress) {
+    if (module->getUseOwnDmxAddress()) {
         nvgFontFaceId(args.vg, boldFont->handle);
         nvgFillColor(args.vg, nvgRGBf(1.f, 1.f, 1.f));
     } else {
@@ -54,7 +54,7 @@ void DmxChannelDisplayWidget::draw(const DrawArgs& args) {
         nvgFillColor(args.vg, nvgRGBf(0.7f, 0.7f, 0.7f));
     }
 
-    snprintf(text, 4, "%03d", module->dmxChannel);
+    snprintf(text, 4, "%03d", module->getDmxChannel());
 
     nvgText(args.vg, 0.0, 12, text, NULL);
 }

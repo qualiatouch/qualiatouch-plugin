@@ -14,6 +14,6 @@ void UseOwnDmxAddressItem::onAction(const event::Action& e) {
 }
 
 void UseOwnDmxAddressItem::step() {
-    rightText = module->useOwnDmxAddress ? "✔" : "";
+    rightText = module->getUseOwnDmxAddress() ? "✔" : "";
     MenuItem::step();
 }

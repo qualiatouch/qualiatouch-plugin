@@ -290,3 +290,36 @@ void AbstractDmxModule::process(const ProcessArgs& args) {
     timeSinceLastLoop = 0.0f;
     loop++;
 }
+
+
+int AbstractDmxModule::getModuleChainSize() {
+    return moduleChainSize;
+}
+
+unsigned int AbstractDmxModule::getDmxAddress() {
+    return dmxAddress;
+}
+
+void AbstractDmxModule::setDmxAddress(int address) {
+    dmxAddress = address;
+}
+
+unsigned int AbstractDmxModule::getDmxChannel() {
+    return dmxChannel;
+}
+
+void AbstractDmxModule::setDmxChannel(unsigned int channel) {
+    dmxChannel = channel;
+}
+
+bool AbstractDmxModule::getUseOwnDmxAddress() {
+    return useOwnDmxAddress;
+}
+
+void AbstractDmxModule::setRecalculateChain(bool recalculate) {
+    recalculateChain = recalculate;
+}
+
+vector<pair<unsigned int, uint8_t>> AbstractDmxModule::getChannelsValues() {
+    return channelsValues;
+}
