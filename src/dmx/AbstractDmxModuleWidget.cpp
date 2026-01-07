@@ -21,7 +21,9 @@ void AbstractDmxModuleWidget::appendContextMenu(Menu* menu) {
 
     DmxUniverseMenuItem* universeItem = new DmxUniverseMenuItem(dmxModule);
     menu->addChild(universeItem);
-    
+
+    menu->addChild(rack::createBoolPtrMenuItem("Keep sending when disconnected", "", &DmxRegistry::instance().keepSendingWhenNotConnected));
+
     // debug info
     if (dmxModule->debug) {
         menu->addChild(new MenuSeparator);

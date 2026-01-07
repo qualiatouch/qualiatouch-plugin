@@ -276,10 +276,11 @@ void AbstractDmxModule::process(const ProcessArgs& args) {
             }
 
             channelsValues[i].second = dmxValue;
-        } else {
+        } else if (!DmxRegistry::instance().keepSendingWhenNotConnected) {
             if (debug) {
                 cout << " : not connected" << endl;
             }
+            channelsValues[i].second = 0;
         }
     }
 

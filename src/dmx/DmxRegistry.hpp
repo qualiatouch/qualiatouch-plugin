@@ -32,6 +32,8 @@ private:
 public:
     bool debug = true;
 
+    bool keepSendingWhenNotConnected = true;
+
     static DmxRegistry& instance();
 
     void registerModule(AbstractDmxModule* module);
