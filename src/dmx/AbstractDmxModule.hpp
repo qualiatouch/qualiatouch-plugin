@@ -26,6 +26,7 @@ struct AbstractDmxModule : rack::engine::Module {
         std::string useOwnDmxAddressJsonKey = "useOwnDmxAddress";
         std::string dmxAddressJsonKey = "dmxAddress";
         std::string dmxUniverseJsonKey = "dmxUniverse";
+        std::string keepSendingWhenNotConnectedJsonKey = "keepSendingWhenNotConnected";
 
         // module params
         float timeSinceLastLoop = 0.f;

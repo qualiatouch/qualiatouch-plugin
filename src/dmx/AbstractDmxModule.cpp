@@ -199,6 +199,7 @@ json_t* AbstractDmxModule::dataToJson() {
     json_object_set_new(rootJson, dmxAddressJsonKey.c_str(), json_integer(dmxAddress));
     json_object_set_new(rootJson, useOwnDmxAddressJsonKey.c_str(), json_boolean(useOwnDmxAddress));
     json_object_set_new(rootJson, dmxUniverseJsonKey.c_str(), json_integer(getDmxUniverse()));
+    json_object_set_new(rootJson, keepSendingWhenNotConnectedJsonKey.c_str(), json_boolean(DmxRegistry::instance().keepSendingWhenNotConnected));
 
     return rootJson;
 }
@@ -224,6 +225,11 @@ void AbstractDmxModule::dataFromJson(json_t* rootJson)  {
     json_t* dmxUniverseParamJson = json_object_get(rootJson, dmxUniverseJsonKey.c_str());
     if (dmxUniverseParamJson) {
         DmxRegistry::instance().setDmxUniverse(json_integer_value(dmxUniverseParamJson));
+    }
+
+    json_t* keepSendingWhenNotConnectedParamJson = json_object_get(rootJson, keepSendingWhenNotConnectedJsonKey.c_str());
+    if (keepSendingWhenNotConnectedParamJson) {
+        DmxRegistry::instance().keepSendingWhenNotConnected = json_boolean_value(keepSendingWhenNotConnectedParamJson);
     }
 }
 
