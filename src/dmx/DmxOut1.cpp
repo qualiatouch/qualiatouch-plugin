@@ -8,7 +8,7 @@ using namespace rack;
 DmxOut1::DmxOut1() : AbstractDmxModule(1) {
     config(PARAMS_LEN, INPUTS_LEN, OUTPUTS_LEN, LIGHTS_LEN);
 
-    configInput(INPUT_CHANNEL_0, "channel 0");
+    configDmxInputs();
 
     configBlackout(BLACKOUT_LIGHT, BLACKOUT_BUTTON, INPUT_BLACKOUT);
 }

@@ -75,7 +75,7 @@ struct AbstractDmxModule : rack::engine::Module {
         void toggleUseOwnDmxAddress();
         int getDmxUniverse();
         void setDmxUniverse(int universe);
-        void updateInputsLabels();
+        void configDmxInputs();
 
         int getModuleChainSize();
         unsigned int getDmxAddress();
@@ -89,6 +89,7 @@ struct AbstractDmxModule : rack::engine::Module {
         void process(const ProcessArgs& args) override;
         bool isSameModel(Module* otherModule) const;
         virtual const char* getModelSlug() const = 0;
+        virtual const vector<std::string> getDmxInputsNames() const;
 
         json_t* dataToJson() override;
         void dataFromJson(json_t* rootJson) override;

@@ -19,7 +19,7 @@ void DmxChannelDisplayWidget::step() {
             cout << "updating channel display widget" << endl;
         }
         parentFrameBufferWidget->setDirty();
-        module->updateInputsLabels();
+        module->configDmxInputs();
     }
 }
 

@@ -238,9 +238,18 @@ bool AbstractDmxModule::isSameModel(Module* otherModule) const {
         && otherModule->model->slug == getModelSlug();
 }
 
-void AbstractDmxModule::updateInputsLabels() {
+const vector<std::string> AbstractDmxModule::getDmxInputsNames() const {
+    vector<std::string> names;
     for (int i = 0; i < nbDmxInputs; i++) {
-        configInput(i, "channel " + to_string(channelsValues[i].first));
+        names.push_back("");
+    }
+    return names;
+}
+
+void AbstractDmxModule::configDmxInputs() {
+    vector<std::string> names = getDmxInputsNames();
+    for (int i = 0; i < nbDmxInputs; i++) {
+        configInput(i, names[i] + "(channel " + to_string(channelsValues[i].first) + ")");
     }
 }
 
