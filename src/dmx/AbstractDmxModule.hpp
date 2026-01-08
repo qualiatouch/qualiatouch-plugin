@@ -53,10 +53,12 @@ struct AbstractDmxModule : rack::engine::Module {
         uint8_t blackoutButtonId;
         uint8_t blackoutInputId;
 
+        static const std::set<std::string> DMX_SLUGS;
+
     protected:
         AbstractDmxModule(int nbInputs);
 
-    void configBlackout(uint8_t lightId, uint8_t buttonId, uint8_t inputId);
+        void configBlackout(uint8_t lightId, uint8_t buttonId, uint8_t inputId);
 
     public:
         bool debug = false;
@@ -88,6 +90,7 @@ struct AbstractDmxModule : rack::engine::Module {
 
         void process(const ProcessArgs& args) override;
         bool isSameModel(Module* otherModule) const;
+        bool isDmx(Module* otherModule) const;
         virtual const char* getModelSlug() const = 0;
         virtual const vector<std::string> getDmxInputsNames() const;
 

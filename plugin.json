@@ -24,6 +24,16 @@
       "keywords": "dmx dmx512 lighting artnet"
     },
     {
+      "slug": "DmxOut2",
+      "name": "DMX OUT 2",
+      "description": "Send DMX data to two consecutive channels",
+      "manualUrl": "https://github.com/qualiatouch/qualiatouch-plugin/blob/master/doc/dmx.md",
+      "tags": [
+        "External"
+      ],
+      "keywords": "dmx dmx512 lighting artnet"
+    },
+    {
       "slug": "PhoneSensor",
       "name": "Phone Sensor",
       "description": "Receives smartphone sensor data from PhyPhox app to command CV signals.",

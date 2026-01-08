@@ -1,5 +1,10 @@
 #include "AbstractDmxModule.hpp"
 
+const std::set<std::string> AbstractDmxModule::DMX_SLUGS = {
+    "DmxOut1",
+    "DmxOut2"
+};
+
 AbstractDmxModule::AbstractDmxModule(int nbInputs) {
     nbDmxInputs = nbInputs;
     channelsValues.resize(nbDmxInputs);
@@ -37,7 +42,7 @@ bool AbstractDmxModule::isLeftModuleDmx() {
         return false;
     }
 
-    return isSameModel(leftModule);
+    return isDmx(leftModule);
 }
 
 void AbstractDmxModule::refreshModuleChain() {
@@ -49,7 +54,7 @@ void AbstractDmxModule::refreshModuleChain() {
 
     // identification du premier module de la chaîne / sinon déclenchement de refreshModuleChain sur le module à gauche
     Module* leftModule = getLeftExpander().module;
-    if (leftModule == nullptr || false == isSameModel(leftModule)) {
+    if (leftModule == nullptr || false == isDmx(leftModule)) {
         useOwnDmxAddress = true;
         dmxAddress = dmxChannel;
         if (debugChain) {
@@ -110,19 +115,10 @@ void AbstractDmxModule::refreshModuleChain() {
         }
         Module* rightModule = m->getRightExpander().module;
         if (debugChain) {
-            cout << "   rightModule " << (rightModule ? rightModule->getId() : 0) << endl;
+            cout << "   rightModule " << (rightModule ? to_string(rightModule->getId()) + " " + rightModule->model->slug : "none") << endl;
         }
 
-        if (rightModule) {
-            if (debugChain) {
-                cout << "           rightModule : " << rightModule->model->slug;
-            }
-        } else {
-            if (debugChain) {
-                cout << "           no rightModule";
-            }
-        }
-        if (rightModule && isSameModel(rightModule))
+        if (rightModule && isDmx(rightModule))
         {
             if (debugChain) {
                 cout << " -> continue" << endl;
@@ -236,6 +232,11 @@ void AbstractDmxModule::dataFromJson(json_t* rootJson)  {
 bool AbstractDmxModule::isSameModel(Module* otherModule) const {
     return otherModule->model->plugin->name == "QualiaTouch"
         && otherModule->model->slug == getModelSlug();
+}
+
+bool AbstractDmxModule::isDmx(Module* otherModule) const {
+    return otherModule->model->plugin->name == "QualiaTouch"
+        && (DMX_SLUGS.find(otherModule->model->slug) != DMX_SLUGS.end());
 }
 
 const vector<std::string> AbstractDmxModule::getDmxInputsNames() const {
