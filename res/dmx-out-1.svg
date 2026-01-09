@@ -8,7 +8,7 @@
    version="1.1"
    id="svg5"
    inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
-   sodipodi:docname="dmx-out-1.svg"
+   sodipodi:docname="dmx-out-2.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -25,9 +25,9 @@
      showgrid="false"
      units="mm"
      width="60.96mm"
-     inkscape:zoom="3.9999998"
-     inkscape:cx="63.250003"
-     inkscape:cy="148.75001"
+     inkscape:zoom="7.6979677"
+     inkscape:cx="27.539736"
+     inkscape:cy="75.994083"
      inkscape:window-width="1600"
      inkscape:window-height="838"
      inkscape:window-x="0"
@@ -38,8 +38,8 @@
      id="defs2" />
   <g
      inkscape:label="Layer 1"
-     inkscape:groupmode="layer"
-     id="layer1">
+     id="layer1"
+     inkscape:groupmode="layer">
     <rect
        style="fill:#272727;fill-opacity:1;stroke-width:0.264999;paint-order:markers stroke fill"
        id="rect854"
@@ -66,16 +66,6 @@
          id="path28" />
     </g>
     <g
-       aria-label="1"
-       id="text13430"
-       style="font-size:5.64444px;line-height:1.25;stroke-width:0.0565065"
-       transform="translate(0,4.2333335)">
-      <path
-         d="m 6.1937316,20.30447 h 0.9370653 v -2.659611 l -0.96187,0.198437 v -0.722091 l 0.9563578,-0.198438 h 1.0087232 v 3.381703 h 0.9370653 v 0.733116 H 6.1937316 Z"
-         style="font-weight:bold;-inkscape-font-specification:'sans-serif Bold'"
-         id="path31" />
-    </g>
-    <g
        aria-label="OUT"
        id="text15318-6"
        style="font-size:5.64444px;line-height:1.25;stroke-width:0.0565065"
@@ -97,7 +87,7 @@
        aria-label="black out "
        id="text3219"
        style="font-size:2.82223px;line-height:1.05;text-align:center;text-anchor:middle;stroke-width:0.264583"
-       transform="translate(0,-5.2916669)">
+       transform="translate(0,4.2333335)">
       <path
          d="m 5.0423725,85.35163 q 0,-0.279742 -0.1157555,-0.438217 -0.1143775,-0.159853 -0.3155716,-0.159853 -0.2011942,0 -0.3169497,0.159853 -0.1143775,0.158475 -0.1143775,0.438217 0,0.279743 0.1143775,0.439596 0.1157555,0.158475 0.3169497,0.158475 0.2011941,0 0.3155716,-0.158475 0.1157555,-0.159853 0.1157555,-0.439596 z M 4.1797182,84.812816 q 0.079926,-0.137804 0.2011941,-0.20395 0.1226458,-0.06752 0.2921449,-0.06752 0.2811206,0 0.456132,0.223242 0.1763893,0.223243 0.1763893,0.587046 0,0.363803 -0.1763893,0.587046 -0.1750114,0.223243 -0.456132,0.223243 -0.1694991,0 -0.2921449,-0.06615 -0.1212677,-0.06752 -0.2011941,-0.205328 v 0.231511 H 3.9247804 v -2.144234 h 0.2549378 z"
          id="path24313" />
@@ -125,15 +115,15 @@
     </g>
     <path
        style="fill:none;stroke:#141414;stroke-width:0.268085;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 1.9694302,117.58898 H 13.274309"
+       d="M 1.9694302,120.23483 H 13.274309"
        id="path24522" />
     <path
-       style="fill:none;stroke:#141414;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 13.143101,117.58898 V 81.504225 h -1.835796"
+       style="fill:none;stroke:#141414;stroke-width:0.238773px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 13.157818,120.19838 V 90.888423 H 11.31713"
        id="path25797" />
     <path
-       style="fill:none;stroke:#141414;stroke-width:0.264048px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 2.0984193,117.58897 V 81.524875 h 1.6744124"
+       style="fill:none;stroke:#141414;stroke-width:0.238662px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 2.0837017,120.28857 V 90.904072 h 1.6788749"
        id="path25799" />
     <g
        aria-label="Qualia   Touch"
@@ -173,6 +163,38 @@
       <path
          d="m 9.0811949,122.87094 v 0.8151 H 8.8593311 v -0.80787 q 0,-0.19172 -0.074758,-0.28698 -0.074758,-0.0952 -0.2242753,-0.0952 -0.1796614,0 -0.2833586,0.11455 -0.1036972,0.11455 -0.1036972,0.31229 v 0.76326 H 7.9501721 v -1.87619 h 0.2230695 v 0.73552 q 0.079582,-0.12178 0.1868961,-0.18207 0.1085203,-0.0603 0.2495967,-0.0603 0.2327158,0 0.3520881,0.1447 0.1193724,0.14348 0.1193724,0.42323 z"
          id="path27759" />
+    </g>
+    <g
+       aria-label="4"
+       id="text6624"
+       style="font-size:6.35px;line-height:1.25;display:none;stroke-width:0.264583"
+       inkscape:label="4"
+       transform="translate(0,0.5)">
+      <path
+         d="M 7.7517746,21.482886 6.4433273,23.420752 H 7.7517746 Z M 7.5533371,20.5 h 1.3270507 v 2.920752 h 0.6604248 v 0.865064 H 8.8803878 v 0.843359 H 7.7517746 V 24.285816 H 5.6991867 v -1.023194 z"
+         style="font-weight:bold;-inkscape-font-specification:'sans-serif Bold'"
+         id="path49897" />
+    </g>
+    <g
+       aria-label="2"
+       id="text6624-4"
+       style="font-size:6.35px;line-height:1.25;display:none;stroke-width:0.264583"
+       inkscape:label="2">
+      <path
+         d="m 7.2649827,24.335425 h 2.0370849 v 0.877466 H 5.9379319 V 24.335425 L 7.6277512,22.844043 Q 7.854094,22.639404 7.9626145,22.444067 8.071135,22.248731 8.071135,22.037891 q 0,-0.325562 -0.2201416,-0.523999 -0.217041,-0.198438 -0.5798096,-0.198438 -0.2790527,0 -0.6108154,0.120923 -0.3317627,0.117822 -0.7100341,0.353467 V 20.772852 Q 6.3534104,20.639526 6.7471848,20.571314 7.1409592,20.5 7.5192307,20.5 q 0.830957,0 1.2898437,0.365869 0.4619873,0.365869 0.4619873,1.020093 0,0.378271 -0.1953369,0.706934 -0.1953369,0.325561 -0.8216552,0.874365 z"
+         style="font-weight:bold;-inkscape-font-specification:'sans-serif Bold'"
+         id="path49876" />
+    </g>
+    <g
+       aria-label="1"
+       id="text6624-4-2"
+       style="font-size:6.35px;display:inline;stroke-width:0.264583"
+       inkscape:label="1"
+       transform="translate(0,0.5)">
+      <path
+         d="M 6.0154467,24.304419 H 7.0696459 V 21.312354 L 5.9875414,21.535596 V 20.723243 L 7.0634447,20.5 h 1.1348144 v 3.804419 h 1.0541992 v 0.824756 H 6.0154467 Z"
+         style="-inkscape-font-specification:'sans-serif Bold'"
+         id="path49871" />
     </g>
   </g>
 </svg>

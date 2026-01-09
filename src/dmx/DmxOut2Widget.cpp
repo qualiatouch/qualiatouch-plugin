@@ -13,11 +13,11 @@ DmxOut2Widget::DmxOut2Widget(DmxOut2* moduleParam) {
     setPanel(createPanel(asset::plugin(pluginInstance, "res/dmx-out-2.svg")));
 
     addInput(createInputCentered<PJ301MPort>(mm2px(Vec(7.625, 40)), dmxModule, DmxOut2::INPUT_CHANNEL_0));
-    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(7.625, 40 + 12)), dmxModule, DmxOut2::INPUT_CHANNEL_1));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(7.625, 40 + 14)), dmxModule, DmxOut2::INPUT_CHANNEL_1));
 
-    addParam(createParamCentered<CKD6>(mm2px(Vec(7.625, 90.0)), dmxModule, DmxOut2::BLACKOUT_BUTTON));
-    addChild(createLightCentered<SmallLight<RedLight>>(mm2px(Vec(7.625, 100.0)), dmxModule, DmxOut2::BLACKOUT_LIGHT));
-    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(7.625, 110.0)), dmxModule, DmxOut2::INPUT_BLACKOUT));
+    addParam(createParamCentered<CKD6>(mm2px(Vec(7.625, 100)), dmxModule, DmxOut2::BLACKOUT_BUTTON));
+    addChild(createLightCentered<SmallLight<RedLight>>(mm2px(Vec(7.625, 107.5)), dmxModule, DmxOut2::BLACKOUT_LIGHT));
+    addInput(createInputCentered<PJ301MPort>(mm2px(Vec(7.625, 115.0)), dmxModule, DmxOut2::INPUT_BLACKOUT));
 
     addChild(createWidget<ScrewBlack>(Vec(0, 0)));
     addChild(createWidget<ScrewBlack>(Vec(RACK_GRID_WIDTH * 2, RACK_GRID_HEIGHT - RACK_GRID_WIDTH)));
