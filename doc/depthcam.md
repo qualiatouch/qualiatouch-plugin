@@ -14,7 +14,7 @@ For now, the module only supports the use of one Kinect sensor at a time. Also, 
 
 Currently, the resulting signal is jittery and glitching, it needs further refining and corrections to be made smoother.
 
-The Kinect device must be plugged into the computer before starting VCV Rack ; and it shouldn't be unplugged until you remove the DepthCamSensor module from the rack.
+The Kinect device must be plugged into the computer before starting VCV Rack ; and it shouldn't be unplugged until you remove the DepthCamSensor module from the rack or close VCV Rack.
 
 ## Requirements
 

@@ -14,11 +14,13 @@ QualiaTouch is about giving the machine perception and action capabilities with 
 
 - DepthCamSensor module : retrieves hand position and depth from the Kinect sensor from Microsoft. This plugin is not affiliated with Kinect or Microsoft in any way. 🚧 Still experimental 🚧 Documentation [here](doc/depthcam.md).
 
-## DMX module
+## DMX modules
 
-If you know about the DMX512 protocol, then you've already understood what this module does.
+If you know about the DMX512 protocol, then you've already understood what these modules do. You'll need an USB -> DMX OUT adapter and an appropriate driver. Documentation [here](doc/dmx.md).
 
-- DMX OUT 1 : allows to send DMX data on one channel from the computer. You'll need an USB -> DMX OUT adapter and an appropriate driver. Documentation [here](doc/dmx.md).
+- DMX OUT 1 : allows to send DMX data on one channel from the computer.
+- DMX OUT 2 : same with 2 channels.
+- DMX OUT 4 : same with 4 channels.
 
 ## Contributing
 
