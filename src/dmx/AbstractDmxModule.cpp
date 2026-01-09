@@ -2,7 +2,8 @@
 
 const std::set<std::string> AbstractDmxModule::DMX_SLUGS = {
     "DmxOut1",
-    "DmxOut2"
+    "DmxOut2",
+    "DmxOut4"
 };
 
 AbstractDmxModule::AbstractDmxModule(int nbInputs) {
