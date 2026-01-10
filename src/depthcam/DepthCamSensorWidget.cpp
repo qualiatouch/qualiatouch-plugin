@@ -35,8 +35,8 @@ void DepthCamSensorWidget::appendContextMenu(Menu* menu) {
     if (module->debug) {
         menu->addChild(new MenuSeparator);
         menu->addChild(createMenuLabel("Debug info"));
-        menu->addChild(createMenuLabel("HasDevice " + to_string(module->hasDevice)));
-        menu->addChild(createMenuLabel("Current tilt " + to_string(module->currentTilt)));
+        menu->addChild(createMenuLabel("HasDevice " + to_string(module->getHasDevice())));
+        menu->addChild(createMenuLabel("Current tilt " + to_string(module->getCurrentTilt())));
         menu->addChild(createMenuLabel("Requested tilt " + to_string(module->tiltRequest)));
     }
 }

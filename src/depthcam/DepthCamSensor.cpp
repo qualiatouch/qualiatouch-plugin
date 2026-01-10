@@ -54,6 +54,14 @@ int DepthCamSensor::toDegrees(TiltDegrees tilt) {
     return tilt * 5;
 }
 
+bool DepthCamSensor::getHasDevice() {
+    return hasDevice;
+}
+
+DepthCamSensor::TiltDegrees DepthCamSensor::getCurrentTilt() {
+    return currentTilt;
+}
+
 void DepthCamSensor::startKinectThread() {
     kinectThread = std::thread([this]() {
         if (debug) {

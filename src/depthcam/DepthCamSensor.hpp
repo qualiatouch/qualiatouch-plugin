@@ -20,51 +20,57 @@ using namespace std;
 using namespace rack;
 
 struct DepthCamSensor : Module {
-    enum ParamIds {
-        THRESHOLD_PARAM,
-        NUM_PARAMS
-    };
+    public:
+        enum ParamIds {
+            THRESHOLD_PARAM,
+            NUM_PARAMS
+        };
 
-    enum OutputIds {
-        OUT_HAND_X,
-        OUT_HAND_Y,
-        OUT_HAND_DEPTH,
-        OUT_HAND_DEPTH_THRESHOLD,
-        NUM_OUTPUTS
-    };
+        enum OutputIds {
+            OUT_HAND_X,
+            OUT_HAND_Y,
+            OUT_HAND_DEPTH,
+            OUT_HAND_DEPTH_THRESHOLD,
+            NUM_OUTPUTS
+        };
 
-    enum TiltDegrees {
-        TILT_0,
-        TILT_5,
-        TILT_10,
-        TILT_15,
-        TILT_20,
-        TILT_25,
-        TILT_30
-    };
+        enum TiltDegrees {
+            TILT_0,
+            TILT_5,
+            TILT_10,
+            TILT_15,
+            TILT_20,
+            TILT_25,
+            TILT_30
+        };
 
-    bool debug = false;
+        bool debug = false;
 
-    float processPeriod = 0.05f;
-    float timeSinceLastLoop = 0.f;
-    int deviceSleep = 1; // ms
-    float hysteresisRange = 50; // mm
+        TiltDegrees tiltRequest = TILT_0;
 
-    bool hasDevice = false;
+        DepthCamSensor();
+        ~DepthCamSensor();
 
-    std::atomic<float> handX{0.f};
-    std::atomic<float> handY{0.f};
-    std::atomic<float> handZ{0.f};
-    std::thread kinectThread;
-    std::atomic<bool> running{true};
+        void startKinectThread();
+        void process(const ProcessArgs& args) override;
+        int toDegrees(TiltDegrees tilt);
 
-    TiltDegrees tiltRequest = TILT_0;
-    TiltDegrees currentTilt = TILT_0;
+        bool getHasDevice();
+        TiltDegrees getCurrentTilt();
 
-    DepthCamSensor();
-    ~DepthCamSensor();
+    private:
+        float processPeriod = 0.05f;
+        float timeSinceLastLoop = 0.f;
+        int deviceSleep = 1; // ms
+        float hysteresisRange = 50; // mm
 
-    void startKinectThread();
-    void process(const ProcessArgs& args) override;
-    int toDegrees(TiltDegrees tilt);
+        bool hasDevice = false;
+
+        std::atomic<float> handX{0.f};
+        std::atomic<float> handY{0.f};
+        std::atomic<float> handZ{0.f};
+        std::thread kinectThread;
+        std::atomic<bool> running{true};
+
+        TiltDegrees currentTilt = TILT_0;
 };
