@@ -5,18 +5,6 @@ using namespace std;
 
 using namespace utils;
 
-const float alpha = 0.9f;
-
-float smoothedX = 0.f;
-float smoothedY = 0.f;
-float smoothedD = 0.f;
-
-// mm
-float lowerThreshold = 40 * 10.f;
-float upperThreshold = 45 * 10.f;
-
-bool thresholdPassed = false;
-
 DepthCamSensor::DepthCamSensor() {
     config(NUM_PARAMS, 0, NUM_OUTPUTS);
 

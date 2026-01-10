@@ -59,10 +59,22 @@ struct DepthCamSensor : Module {
         TiltDegrees getCurrentTilt();
 
     private:
-        float processPeriod = 0.05f;
+        float processPeriod = 0.001f;
         float timeSinceLastLoop = 0.f;
         int deviceSleep = 1; // ms
         float hysteresisRange = 50; // mm
+
+        const float alpha = 0.1f;
+
+        float smoothedX = 0.f;
+        float smoothedY = 0.f;
+        float smoothedD = 0.f;
+
+        // mm
+        float lowerThreshold = 40 * 10.f;
+        float upperThreshold = 45 * 10.f;
+
+        bool thresholdPassed = false;
 
         bool hasDevice = false;
 
