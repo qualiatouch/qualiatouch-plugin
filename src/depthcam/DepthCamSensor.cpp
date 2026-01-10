@@ -68,14 +68,17 @@ void DepthCamSensor::startKinectThread() {
         device.startDepth();
 
         while (running) {
-            //cout << "tiltRequest " << tiltRequest << " currentTilt " << currentTilt << endl;
             if (tiltRequest != currentTilt) {
                 currentTilt = tiltRequest;
                 if (debug) {
                     cout << "setTiltDegrees " << tiltRequest << endl;
                 }
 
-                device.setTiltDegrees(toDegrees(currentTilt));
+                try {
+                    device.setTiltDegrees(toDegrees(currentTilt));
+                } catch (std::runtime_error& e) {
+                    cerr << "failed to tilt device : " << e.what() << endl;
+                }
             }
 
             int x, y, z;
