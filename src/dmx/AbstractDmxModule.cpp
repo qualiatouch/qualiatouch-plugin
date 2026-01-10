@@ -46,6 +46,16 @@ bool AbstractDmxModule::isLeftModuleDmx() {
     return isDmx(leftModule);
 }
 
+void AbstractDmxModule::assignDmxChannels(unsigned int baseChannel) {
+    dmxChannel = baseChannel;
+    for (int i = 0; i < nbDmxInputs; i++) {
+        if (debugChain) {
+            cout << "       i=" << i << " channel " << dmxChannel + i << endl;
+        }
+        channelsValues[i].first = dmxChannel + i;
+    }
+}
+
 void AbstractDmxModule::refreshModuleChain() {
     if (debugChain) {
         cout << "module " << getId() << " in refreshModuleChain()" << endl;
@@ -104,20 +114,11 @@ void AbstractDmxModule::refreshModuleChain() {
             address = m->dmxAddress;
             relativeCounter = 0;
         }
-        m->dmxChannel = address + relativeCounter;
+
+        m->assignDmxChannels(address + relativeCounter);
 
         if (debugChain) {
             cout << "   dmxChannel of module is " << dmxChannel << endl;
-        }
-
-        for (int i = 0; i < nbDmxInputs; i++) {
-            if (debugChain) {
-                cout << "       i=" << i << " channel " << m->dmxChannel + i << endl;
-            }
-            m->channelsValues[i].first = m->dmxChannel + i;
-        }
-        if (debugChain) {
-            cout << "   address is now " << address << endl;
         }
 
         m->updateDmxChannelDisplayWidget = true;
@@ -215,6 +216,12 @@ json_t* AbstractDmxModule::dataToJson() {
     json_object_set_new(rootJson, dmxUniverseJsonKey.c_str(), json_integer(getDmxUniverse()));
     json_object_set_new(rootJson, keepSendingWhenNotConnectedJsonKey.c_str(), json_boolean(DmxRegistry::instance().keepSendingWhenNotConnected));
 
+    if (debug) {
+        char* jsonStr = json_dumps(rootJson, JSON_INDENT(2));
+        cout << "   saving JSON: " << jsonStr << endl;
+        free(jsonStr);
+    }
+
     return rootJson;
 }
 
@@ -285,6 +292,9 @@ void AbstractDmxModule::process(const ProcessArgs& args) {
     if (blackoutButtonTrigger.process(params[blackoutButtonId].getValue())
         || blackoutInputTrigger.process(inputs[blackoutInputId].getVoltage())) {
         blackoutTriggered = true;
+        for (int i = 0; i < nbDmxInputs; i++) {
+            channelsValues[i].second = 0;
+        }
         return;
     }
 

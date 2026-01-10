@@ -85,6 +85,7 @@ struct AbstractDmxModule : rack::engine::Module {
         unsigned int getDmxChannel();
         void setDmxChannel(unsigned int channel);
         bool getUseOwnDmxAddress();
+        void assignDmxChannels(unsigned int baseChannel);
         void setRecalculateChain(bool recalculate);
         vector<pair<unsigned int, uint8_t>> getChannelsValues();
 
