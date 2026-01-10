@@ -18,202 +18,221 @@ using namespace rack;
 struct PhoneSensorWidget;
 
 struct PhoneSensor : Module {
-	enum ParamId {
-		PARAMS_LEN
-	};
+    public:
+        enum ParamId {
+            PARAMS_LEN
+        };
 
-    enum InputId {
-		INPUTS_LEN
-	};
+        enum InputId {
+            INPUTS_LEN
+        };
 
-	enum LightId {
-        STATUS_LIGHT_RED,
-        STATUS_LIGHT_GREEN,
-        STATUS_LIGHT_BLUE,
-        LIGHTS_LEN
-	};
+        enum LightId {
+            STATUS_LIGHT_RED,
+            STATUS_LIGHT_GREEN,
+            STATUS_LIGHT_BLUE,
+            LIGHTS_LEN
+        };
 
-	enum OutputIds {
-		OUT_X,
-		OUT_Y,
-		OUT_Z,
-		NUM_OUTPUTS
-	};
+        enum OutputIds {
+            OUT_X,
+            OUT_Y,
+            OUT_Z,
+            NUM_OUTPUTS
+        };
 
-    std::atomic<bool> dataReady;
+        enum Status {
+            INIT,
+            MEASURING,
+            NOT_MEASURING,
+            ERROR
+        };
 
-    std::string http = "http://";
-    std::string ip = "192.168.1.25:8080";
-    std::string queryParams = "";
-    std::string url;
+        enum Sensor {
+            SENSOR_MAG = 0,
+            SENSOR_ACC = 1,
+            SENSOR_LIGHT = 2,
+            SENSOR_TILT = 3,
+            SENSOR_SOUND = 4,
+            SENSOR_COLOR = 5,
+            SENSOR_GYR = 6
+        };
 
-    enum Status {
-        INIT,
-        MEASURING,
-        NOT_MEASURING,
-        ERROR
-    };
+        enum Coord {
+            COORD_X,
+            COORD_Y,
+            COORD_Z
+        };
 
-    enum Sensor {
-        SENSOR_MAG = 0,
-        SENSOR_ACC = 1,
-        SENSOR_LIGHT = 2,
-        SENSOR_TILT = 3,
-        SENSOR_SOUND = 4,
-        SENSOR_COLOR = 5,
-        SENSOR_GYR = 6
-    };
+        enum VoltageMode {
+            UNIPOLAR = 0,
+            BIPOLAR = 1
+        };
 
-    enum Coord {
-        COORD_X,
-        COORD_Y,
-        COORD_Z
-    };
+        VoltageMode voltageMode = UNIPOLAR;
 
-    Status status = INIT;
-    Sensor sensor = SENSOR_MAG;
-    int sensorModeParam = SENSOR_MAG;
+        bool debug = false;
 
-    enum VoltageMode {
-        UNIPOLAR = 0,
-        BIPOLAR = 1
-    };
+        int sensorModeParam = SENSOR_MAG;
 
-    VoltageMode voltageMode = UNIPOLAR;
+        PhoneSensor();
 
-    std::string sensorModeParamJsonKey = "sensorModeParam";
-    std::string voltageModeJsonKey = "voltageMode";
-    std::string ipJsonKey = "ip";
-    std::string xMinJsonKey = "xMin";
-    std::string xMaxJsonKey = "xMax";
-    std::string yMinJsonKey = "yMin";
-    std::string yMaxJsonKey = "yMax";
-    std::string zMinJsonKey = "zMin";
-    std::string zMaxJsonKey = "zMax";
+        void setWidget(PhoneSensorWidget* widgetParam);
 
-	float outX = 0.f;
-	float outY = 0.f;
-	float outZ = 0.f;
+        void initUrl();
+        void initLimitsFromDefaults();
+        void initLimitsFromJson();
+        void initSensor();
+        bool initSensorHasY();
+        bool initSensorHasZ();
 
-    const float DEFAULT_MIN_X_MAG = -500.f;
-    const float DEFAULT_MAX_X_MAG = 1000.f;
-    const float DEFAULT_MIN_Y_MAG = -200.f;
-    const float DEFAULT_MAX_Y_MAG = 200.f;
-    const float DEFAULT_MIN_Z_MAG = -40.f;
-    const float DEFAULT_MAX_Z_MAG = 2500.f;
+        std::string getIpAddress();
+        void setIpAddress(std::string newIp);
 
-    const float DEFAULT_MIN_X_ACC = -100.f;
-    const float DEFAULT_MAX_X_ACC = 100.f;
-    const float DEFAULT_MIN_Y_ACC = -100.f;
-    const float DEFAULT_MAX_Y_ACC = 100.f;
-    const float DEFAULT_MIN_Z_ACC = -100.f;
-    const float DEFAULT_MAX_Z_ACC = 100.f;
+        std::string getQueryParams(Sensor sensor);
 
-    const float DEFAULT_MIN_X_LIGHT = 000.f;
-    const float DEFAULT_MAX_X_LIGHT = 500.f;
-    const float DEFAULT_MIN_Y_LIGHT = 000.f;
-    const float DEFAULT_MAX_Y_LIGHT = 500.f;
-    const float DEFAULT_MIN_Z_LIGHT = 000.f;
-    const float DEFAULT_MAX_Z_LIGHT = 500.f;
+        void fetchHttpAsync(int requestId);
 
-    const float DEFAULT_MIN_X_TILT = -180.f;
-    const float DEFAULT_MAX_X_TILT = 180.f;
-    const float DEFAULT_MIN_Y_TILT = -180.f;
-    const float DEFAULT_MAX_Y_TILT = 180.f;
-    const float DEFAULT_MIN_Z_TILT = -180.f;
-    const float DEFAULT_MAX_Z_TILT = 180.f;
+        void setSensorMinX(float f);
+        void setSensorMaxX(float f);
+        void setSensorMinY(float f);
+        void setSensorMaxY(float f);
+        void setSensorMinZ(float f);
+        void setSensorMaxZ(float f);
+        float getSensorMinX();
+        float getSensorMaxX();
+        float getSensorMinY();
+        float getSensorMaxY();
+        float getSensorMinZ();
+        float getSensorMaxZ();
 
-    const float DEFAULT_MIN_X_SOUND = -50.f;
-    const float DEFAULT_MAX_X_SOUND = -10.f;
-    const float DEFAULT_MIN_Y_SOUND = -50.f;
-    const float DEFAULT_MAX_Y_SOUND = -10.f;
-    const float DEFAULT_MIN_Z_SOUND = -50.f;
-    const float DEFAULT_MAX_Z_SOUND = -10.f;
+        float calculateOutputVoltage(float rawValue, float rawMin, float rawMax);
 
-    const float DEFAULT_MIN_X_COLOR = 0;
-    const float DEFAULT_MAX_X_COLOR = 255;
-    const float DEFAULT_MIN_Y_COLOR = 0;
-    const float DEFAULT_MAX_Y_COLOR = 255;
-    const float DEFAULT_MIN_Z_COLOR = 0;
-    const float DEFAULT_MAX_Z_COLOR = 255;
+        void process(const ProcessArgs& args) override;
 
-    const float DEFAULT_MIN_X_GYR = -20;
-    const float DEFAULT_MAX_X_GYR = 20;
-    const float DEFAULT_MIN_Y_GYR = -20;
-    const float DEFAULT_MAX_Y_GYR = 20;
-    const float DEFAULT_MIN_Z_GYR = -20;
-    const float DEFAULT_MAX_Z_GYR = 20;
+        json_t* dataToJson() override;
+        void dataFromJson(json_t* rootJson) override;
+        Status getStatus(bool hasError, bool isMeasuring);
+        void updateLedColor();
+        void setStatusLedColor(float red, float green, float blue);
 
-    float sensorMinX = DEFAULT_MIN_X_MAG;
-    float sensorMaxX = DEFAULT_MAX_X_MAG;
-    float sensorMinY = DEFAULT_MIN_Y_MAG;
-    float sensorMaxY = DEFAULT_MAX_Y_MAG;
-    float sensorMinZ = DEFAULT_MIN_Z_MAG;
-    float sensorMaxZ = DEFAULT_MAX_Z_MAG;
+    private:
+        std::atomic<bool> dataReady;
 
-    float minXParam;
-    float maxXParam;
-    float minYParam;
-    float maxYParam;
-    float minZParam;
-    float maxZParam;
+        std::string http = "http://";
+        std::string ip = "192.168.1.25:8080";
+        std::string queryParams = "";
+        std::string url;
 
-    bool sensorHasY = true;
-    bool sensorHasZ = true;
+        Status status = INIT;
+        Sensor sensor = SENSOR_MAG;
 
-    bool loadedFromJson = false;
+        std::string sensorModeParamJsonKey = "sensorModeParam";
+        std::string voltageModeJsonKey = "voltageMode";
+        std::string ipJsonKey = "ip";
+        std::string xMinJsonKey = "xMin";
+        std::string xMaxJsonKey = "xMax";
+        std::string yMinJsonKey = "yMin";
+        std::string yMaxJsonKey = "yMax";
+        std::string zMinJsonKey = "zMin";
+        std::string zMaxJsonKey = "zMax";
 
-    float fetchingPeriod = 0.01f;
-    float timeSinceLastRequest = 0.f;
-    bool isFetching = false;
+        float outX = 0.f;
+        float outY = 0.f;
+        float outZ = 0.f;
 
-    bool debug = false;
+        const float DEFAULT_MIN_X_MAG = -500.f;
+        const float DEFAULT_MAX_X_MAG = 1000.f;
+        const float DEFAULT_MIN_Y_MAG = -200.f;
+        const float DEFAULT_MAX_Y_MAG = 200.f;
+        const float DEFAULT_MIN_Z_MAG = -40.f;
+        const float DEFAULT_MAX_Z_MAG = 2500.f;
 
-	std::atomic<int> nextRequestId;
-	int nextExpectedId = 0;
-	
-	struct OrderedResult {
-		int requestId;
-        bool isMeasuring;
-        bool hasError;
-		float resultX;
-		float resultY;
-		float resultZ;
-	};	
-	
-	std::mutex resultMutex;
-	std::priority_queue<
-		OrderedResult,
-		std::vector<OrderedResult>,
-		std::function<bool(const OrderedResult&, const OrderedResult&)>
-	> resultQueue{[](const OrderedResult& a, const OrderedResult& b) {
-		return a.requestId > b.requestId;  // Min-heap
-	}};
+        const float DEFAULT_MIN_X_ACC = -100.f;
+        const float DEFAULT_MAX_X_ACC = 100.f;
+        const float DEFAULT_MIN_Y_ACC = -100.f;
+        const float DEFAULT_MAX_Y_ACC = 100.f;
+        const float DEFAULT_MIN_Z_ACC = -100.f;
+        const float DEFAULT_MAX_Z_ACC = 100.f;
 
-    PhoneSensorWidget* widget;
+        const float DEFAULT_MIN_X_LIGHT = 000.f;
+        const float DEFAULT_MAX_X_LIGHT = 500.f;
+        const float DEFAULT_MIN_Y_LIGHT = 000.f;
+        const float DEFAULT_MAX_Y_LIGHT = 500.f;
+        const float DEFAULT_MIN_Z_LIGHT = 000.f;
+        const float DEFAULT_MAX_Z_LIGHT = 500.f;
 
-    PhoneSensor();
+        const float DEFAULT_MIN_X_TILT = -180.f;
+        const float DEFAULT_MAX_X_TILT = 180.f;
+        const float DEFAULT_MIN_Y_TILT = -180.f;
+        const float DEFAULT_MAX_Y_TILT = 180.f;
+        const float DEFAULT_MIN_Z_TILT = -180.f;
+        const float DEFAULT_MAX_Z_TILT = 180.f;
 
-    void setWidget(PhoneSensorWidget* widgetParam);
+        const float DEFAULT_MIN_X_SOUND = -50.f;
+        const float DEFAULT_MAX_X_SOUND = -10.f;
+        const float DEFAULT_MIN_Y_SOUND = -50.f;
+        const float DEFAULT_MAX_Y_SOUND = -10.f;
+        const float DEFAULT_MIN_Z_SOUND = -50.f;
+        const float DEFAULT_MAX_Z_SOUND = -10.f;
 
-    void initUrl();
-    void initLimitsFromDefaults();
-    void initLimitsFromJson();
-    void initSensor();
-    bool initSensorHasY();
-    bool initSensorHasZ();
+        const float DEFAULT_MIN_X_COLOR = 0;
+        const float DEFAULT_MAX_X_COLOR = 255;
+        const float DEFAULT_MIN_Y_COLOR = 0;
+        const float DEFAULT_MAX_Y_COLOR = 255;
+        const float DEFAULT_MIN_Z_COLOR = 0;
+        const float DEFAULT_MAX_Z_COLOR = 255;
 
-    void setIpAddress(std::string newIp);
+        const float DEFAULT_MIN_X_GYR = -20;
+        const float DEFAULT_MAX_X_GYR = 20;
+        const float DEFAULT_MIN_Y_GYR = -20;
+        const float DEFAULT_MAX_Y_GYR = 20;
+        const float DEFAULT_MIN_Z_GYR = -20;
+        const float DEFAULT_MAX_Z_GYR = 20;
 
-    std::string getQueryParams(Sensor sensor);
+        float sensorMinX = DEFAULT_MIN_X_MAG;
+        float sensorMaxX = DEFAULT_MAX_X_MAG;
+        float sensorMinY = DEFAULT_MIN_Y_MAG;
+        float sensorMaxY = DEFAULT_MAX_Y_MAG;
+        float sensorMinZ = DEFAULT_MIN_Z_MAG;
+        float sensorMaxZ = DEFAULT_MAX_Z_MAG;
 
-    float calculateOutputVoltage(float rawValue, float rawMin, float rawMax);
+        float minXParam;
+        float maxXParam;
+        float minYParam;
+        float maxYParam;
+        float minZParam;
+        float maxZParam;
 
-    void process(const ProcessArgs& args) override;
+        bool sensorHasY = true;
+        bool sensorHasZ = true;
 
-    json_t* dataToJson() override;
-    void dataFromJson(json_t* rootJson) override;
-    Status getStatus(bool hasError, bool isMeasuring);
-    void updateLedColor();
-    void setStatusLedColor(float red, float green, float blue);
+        bool loadedFromJson = false;
+
+        float fetchingPeriod = 0.01f;
+        float timeSinceLastRequest = 0.f;
+        bool isFetching = false;
+
+        std::atomic<int> nextRequestId;
+        int nextExpectedId = 0;
+        
+        struct OrderedResult {
+            int requestId;
+            bool isMeasuring;
+            bool hasError;
+            float resultX;
+            float resultY;
+            float resultZ;
+        };	
+        
+        std::mutex resultMutex;
+        std::priority_queue<
+            OrderedResult,
+            std::vector<OrderedResult>,
+            std::function<bool(const OrderedResult&, const OrderedResult&)>
+        > resultQueue{[](const OrderedResult& a, const OrderedResult& b) {
+            return a.requestId > b.requestId;  // Min-heap
+        }};
+
+        PhoneSensorWidget* widget;
 };

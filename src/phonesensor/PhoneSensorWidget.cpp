@@ -27,7 +27,7 @@ Menu* IpAddressMenuItem::createChildMenu() {
     Menu* menu = new Menu;
 
     IpAddressField* ipField = new IpAddressField(module);
-    ipField->text = module->ip;
+    ipField->text = module->getIpAddress();
     menu->addChild(ipField);
 
     return menu;
@@ -46,22 +46,22 @@ void SensorLimitField::onSelectKey(const event::SelectKey& e) {
         if (module) {
             switch (fieldName) {
                 case MIN_X:
-                    module->sensorMinX = std::stof(text);
+                    module->setSensorMinX(std::stof(text));
                     break;
                 case MAX_X:
-                    module->sensorMaxX = std::stof(text);
+                    module->setSensorMaxX(std::stof(text));
                     break;
                 case MIN_Y:
-                    module->sensorMinY = std::stof(text);
+                    module->setSensorMinY(std::stof(text));
                     break;
                 case MAX_Y:
-                    module->sensorMaxY = std::stof(text);
+                    module->setSensorMaxY(std::stof(text));
                     break;
                 case MIN_Z:
-                    module->sensorMinZ = std::stof(text);
+                    module->setSensorMinZ(std::stof(text));
                     break;
                 case MAX_Z:
-                    module->sensorMaxZ = std::stof(text);
+                    module->setSensorMaxZ(std::stof(text));
                     break;
                 default:
                     break;
@@ -163,7 +163,7 @@ void PhoneSensorWidget::appendContextMenu(Menu* menu) {
 
     IpAddressMenuItem* ipItem = new IpAddressMenuItem;
     ipItem->text = "IP & port";
-    ipItem->rightText = module->ip + " " + RIGHT_ARROW;
+    ipItem->rightText = module->getIpAddress() + " " + RIGHT_ARROW;
     ipItem->module = module;
     menu->addChild(ipItem);
 
@@ -183,12 +183,12 @@ void PhoneSensorWidget::appendContextMenu(Menu* menu) {
     menu->addChild(new MenuSeparator);
     menu->addChild(createMenuLabel("Sensor limit settings"));
 
-    menu->addChild(new SensorLimitMenuItem(module, MIN_X, module->sensorMinX));
-    menu->addChild(new SensorLimitMenuItem(module, MAX_X, module->sensorMaxX));
-    menu->addChild(new SensorLimitMenuItem(module, MIN_Y, module->sensorMinY));
-    menu->addChild(new SensorLimitMenuItem(module, MAX_Y, module->sensorMaxY));
-    menu->addChild(new SensorLimitMenuItem(module, MIN_Z, module->sensorMinZ));
-    menu->addChild(new SensorLimitMenuItem(module, MAX_Z, module->sensorMaxZ));
+    menu->addChild(new SensorLimitMenuItem(module, MIN_X, module->getSensorMinX()));
+    menu->addChild(new SensorLimitMenuItem(module, MAX_X, module->getSensorMaxX()));
+    menu->addChild(new SensorLimitMenuItem(module, MIN_Y, module->getSensorMinY()));
+    menu->addChild(new SensorLimitMenuItem(module, MAX_Y, module->getSensorMaxY()));
+    menu->addChild(new SensorLimitMenuItem(module, MIN_Z, module->getSensorMinZ()));
+    menu->addChild(new SensorLimitMenuItem(module, MAX_Z, module->getSensorMaxZ()));
 
     menu->addChild(new MenuSeparator);
     menu->addChild(createMenuLabel("Output settings"));

@@ -43,6 +43,10 @@ void PhoneSensor::setWidget(PhoneSensorWidget* widgetParam) {
     widget = widgetParam;
 }
 
+std::string PhoneSensor::getIpAddress() {
+    return ip;
+}
+
 void PhoneSensor::setIpAddress(std::string newIp) {
     ip = newIp;
     initUrl();
@@ -187,6 +191,54 @@ void PhoneSensor::initLimitsFromJson() {
             sensorMaxZ = maxZParam;
             break;
     }
+}
+
+void PhoneSensor::setSensorMinX(float f) {
+    sensorMinX = f;
+}
+
+void PhoneSensor::setSensorMaxX(float f) {
+    sensorMaxX = f;
+}
+
+void PhoneSensor::setSensorMinY(float f) {
+    sensorMinY = f;
+}
+
+void PhoneSensor::setSensorMaxY(float f) {
+    sensorMaxY = f;
+}
+
+void PhoneSensor::setSensorMinZ(float f) {
+    sensorMinZ = f;
+}
+
+void PhoneSensor::setSensorMaxZ(float f) {
+    sensorMaxZ = f;
+}
+
+float PhoneSensor::getSensorMinX() {
+    return sensorMinX;
+}
+
+float PhoneSensor::getSensorMaxX() {
+    return sensorMaxX;
+}
+
+float PhoneSensor::getSensorMinY() {
+    return sensorMinY;
+}
+
+float PhoneSensor::getSensorMaxY() {
+    return sensorMaxY;
+}
+
+float PhoneSensor::getSensorMinZ() {
+    return sensorMinZ;
+}
+
+float PhoneSensor::getSensorMaxZ() {
+    return sensorMaxZ;
 }
 
 std::string PhoneSensor::getQueryParams(Sensor sensor) {
@@ -383,8 +435,8 @@ void PhoneSensor::updateLedColor() {
 
 // TODO will not work correctly with more than one module
 
-void fetchHttpAsync(PhoneSensor* module, int requestId) {
-    if (module->debug) {
+void PhoneSensor::fetchHttpAsync(int requestId) {
+    if (debug) {
 	    cout << "fetchHttpAsync" << endl;
     }
     // todo in constructor ?
@@ -395,16 +447,16 @@ void fetchHttpAsync(PhoneSensor* module, int requestId) {
     }
 
     std::string response;
-    if (module->debug) {
-        cout << "querying " << module->url << endl;
+    if (debug) {
+        cout << "querying " << url << endl;
     }
 
     // curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.1.25:8080/get?magX&magY&magZ");
-    curl_easy_setopt(curl, CURLOPT_URL, module->url.c_str());
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, CurlWriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
     
-    if (module->debug) {
+    if (debug) {
 	    cout << "curl_easy_perform" << endl;
     }
 
@@ -416,38 +468,38 @@ void fetchHttpAsync(PhoneSensor* module, int requestId) {
     float voltageY = 0.f;
     float voltageZ = 0.f;
 
-    if (module->debug) {
+    if (debug) {
 	    cout << "res = " << res << endl;
     }
 
     if (res == CURLE_OK) {
         try {
-            if (module->debug) {
+            if (debug) {
                 cout << "response = " << response << endl;
             }
             json j = json::parse(response);
-            if (module->debug) {
+            if (debug) {
                 cout << "j = " << j << endl;
             }
 
             isMeasuring = getMeasuringValue(j);
             if (isMeasuring) {
-                SensorValues values = getValue(j, module->sensor);
+                SensorValues values = getValue(j, sensor);
                 float sensorX = values.x;
                 float sensorY = values.y;
                 float sensorZ = values.z;
 
-                if (module->debug) {
+                if (debug) {
                     cout << "sensorX = " << sensorX << endl;
                     cout << "sensorY = " << sensorY << endl;
                     cout << "sensorZ = " << sensorZ << endl;
                 }
 
-                voltageX = module->calculateOutputVoltage(sensorX, module->sensorMinX, module->sensorMaxX);
-                voltageY = module->calculateOutputVoltage(sensorY, module->sensorMinY, module->sensorMaxY);
-                voltageZ = module->calculateOutputVoltage(sensorZ, module->sensorMinZ, module->sensorMaxZ);
+                voltageX = calculateOutputVoltage(sensorX, sensorMinX, sensorMaxX);
+                voltageY = calculateOutputVoltage(sensorY, sensorMinY, sensorMaxY);
+                voltageZ = calculateOutputVoltage(sensorZ, sensorMinZ, sensorMaxZ);
 
-                if (module->debug) {
+                if (debug) {
                     cout << "voltageX = " << voltageX << endl;
                     cout << "voltageY = " << voltageY << endl;
                     cout << "voltageZ = " << voltageZ << endl;
@@ -455,23 +507,23 @@ void fetchHttpAsync(PhoneSensor* module, int requestId) {
             }
 		} catch (const std::exception& e) {
             hasError = true;
-            if (module->debug) {
+            if (debug) {
                 cout << "error " << "" << " : " << e.what() << endl;
             }
-			module->dataReady = true;
+			dataReady = true;
 		}
     } else {
         hasError = true;
-        if (module->debug) {
+        if (debug) {
             cout << "error with curl : " << res << " - " << curl_easy_strerror(res) << endl;
         }
     }
 
-    std::lock_guard<std::mutex> lock(module->resultMutex);
-    module->resultQueue.push({requestId, isMeasuring, hasError, voltageX, voltageY, voltageZ});
+    std::lock_guard<std::mutex> lock(resultMutex);
+    resultQueue.push({requestId, isMeasuring, hasError, voltageX, voltageY, voltageZ});
 
     curl_easy_cleanup(curl);
-    module->isFetching = false;
+    isFetching = false;
 }
 
 json_t* PhoneSensor::dataToJson() {
@@ -608,7 +660,7 @@ void PhoneSensor::process(const ProcessArgs& args) {
             }
 			isFetching = true;
 			timeSinceLastRequest = 0.f;
-			std::thread(fetchHttpAsync, this, id).detach();
+			std::thread(&PhoneSensor::fetchHttpAsync, this, id).detach();
 		}
 
 		{
