@@ -93,6 +93,10 @@ void DepthCamSensor::startKinectThread() {
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(deviceSleep));
         }
+        if (debug) {
+            cout << "stopping device" << endl;
+        }
+        device.stopDepth();
     });
     if (debug) {
         cout << "end startKinectThread" << endl;
