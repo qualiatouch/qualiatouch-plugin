@@ -8,16 +8,16 @@ DmxAddressField::DmxAddressField(AbstractDmxModule* moduleParam) {
 
 void DmxAddressField::onSelectKey(const event::SelectKey& event) {
     if (event.action == GLFW_PRESS && event.key == GLFW_KEY_ENTER) {
-        int dmxAddress;
+        int dmxOwnAddress;
         try {
-            dmxAddress = std::stoi(text);
+            dmxOwnAddress = std::stoi(text);
         } catch (const std::exception& e) {
             event.consume(this);
             return;
         }
         if (module) {
-            module->setDmxAddress(dmxAddress);
-            module->setDmxChannel(dmxAddress);
+            module->setDmxOwnAddress(dmxOwnAddress);
+            module->setDmxChannel(dmxOwnAddress);
             module->setRecalculateChain(true);
         }
         ui::MenuOverlay* overlay = getAncestorOfType<ui::MenuOverlay>();
@@ -34,14 +34,14 @@ void DmxAddressField::onSelectKey(const event::SelectKey& event) {
 DmxAddressMenuItem::DmxAddressMenuItem(AbstractDmxModule* moduleParam) {
     module = moduleParam;
     text = "DMX Address";
-    rightText = std::to_string(module->getDmxAddress()) + " " + RIGHT_ARROW;
+    rightText = std::to_string(module->getDmxOwnAddress()) + " " + RIGHT_ARROW;
 }
 
 Menu* DmxAddressMenuItem::createChildMenu() {
     Menu* menu = new Menu;
 
     DmxAddressField* addressField = new DmxAddressField(module);
-    addressField->text = std::to_string(module->getDmxAddress());
+    addressField->text = std::to_string(module->getDmxOwnAddress());
     menu->addChild(addressField);
 
     return menu;

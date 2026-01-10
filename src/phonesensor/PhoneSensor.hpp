@@ -215,7 +215,7 @@ struct PhoneSensor : Module {
 
         std::atomic<int> nextRequestId;
         int nextExpectedId = 0;
-        
+
         struct OrderedResult {
             int requestId;
             bool isMeasuring;
@@ -224,7 +224,7 @@ struct PhoneSensor : Module {
             float resultY;
             float resultZ;
         };	
-        
+
         std::mutex resultMutex;
         std::priority_queue<
             OrderedResult,

@@ -67,7 +67,7 @@ void AbstractDmxModule::refreshModuleChain() {
     Module* leftModule = getLeftExpander().module;
     if (leftModule == nullptr || false == isDmx(leftModule)) {
         useOwnDmxAddress = true;
-        dmxAddress = dmxChannel;
+        dmxOwnAddress = dmxChannel;
         if (debugChain) {
             cout << "module " << getId() << " is first of chain" << endl;
         }
@@ -99,7 +99,7 @@ void AbstractDmxModule::refreshModuleChain() {
 
     AbstractDmxModule* m = this;
     int i = 0;
-    int address = dmxAddress;
+    int address = dmxOwnAddress;
     int relativeCounter = 0;
 
     // remplissage de la chaîne
@@ -111,7 +111,7 @@ void AbstractDmxModule::refreshModuleChain() {
         }
 
         if (m->useOwnDmxAddress) {
-            address = m->dmxAddress;
+            address = m->dmxOwnAddress;
             relativeCounter = 0;
         }
 
@@ -211,7 +211,7 @@ void AbstractDmxModule::setDmxUniverse(int universe) {
 
 json_t* AbstractDmxModule::dataToJson() {
     json_t* rootJson = json_object();
-    json_object_set_new(rootJson, dmxAddressJsonKey.c_str(), json_integer(dmxAddress));
+    json_object_set_new(rootJson, dmxAddressJsonKey.c_str(), json_integer(dmxOwnAddress));
     json_object_set_new(rootJson, useOwnDmxAddressJsonKey.c_str(), json_boolean(useOwnDmxAddress));
     json_object_set_new(rootJson, dmxUniverseJsonKey.c_str(), json_integer(getDmxUniverse()));
     json_object_set_new(rootJson, keepSendingWhenNotConnectedJsonKey.c_str(), json_boolean(DmxRegistry::instance().keepSendingWhenNotConnected));
@@ -239,8 +239,8 @@ void AbstractDmxModule::dataFromJson(json_t* rootJson)  {
 
     json_t* dmxAddressParamJson = json_object_get(rootJson, dmxAddressJsonKey.c_str());
     if (dmxAddressParamJson) {
-        dmxAddress = json_integer_value(dmxAddressParamJson);
-        dmxChannel = dmxAddress;
+        dmxOwnAddress = json_integer_value(dmxAddressParamJson);
+        dmxChannel = dmxOwnAddress;
     }
 
     json_t* dmxUniverseParamJson = json_object_get(rootJson, dmxUniverseJsonKey.c_str());
@@ -341,12 +341,12 @@ int AbstractDmxModule::getModuleChainSize() {
     return moduleChainSize;
 }
 
-unsigned int AbstractDmxModule::getDmxAddress() {
-    return dmxAddress;
+unsigned int AbstractDmxModule::getDmxOwnAddress() {
+    return dmxOwnAddress;
 }
 
-void AbstractDmxModule::setDmxAddress(int address) {
-    dmxAddress = address;
+void AbstractDmxModule::setDmxOwnAddress(int address) {
+    dmxOwnAddress = address;
 }
 
 unsigned int AbstractDmxModule::getDmxChannel() {

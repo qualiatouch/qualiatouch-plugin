@@ -24,7 +24,7 @@ struct AbstractDmxModule : rack::engine::Module {
     private:
         // json keys
         std::string useOwnDmxAddressJsonKey = "useOwnDmxAddress";
-        std::string dmxAddressJsonKey = "dmxAddress";
+        std::string dmxAddressJsonKey = "dmxOwnAddress";
         std::string dmxUniverseJsonKey = "dmxUniverse";
         std::string keepSendingWhenNotConnectedJsonKey = "keepSendingWhenNotConnected";
 
@@ -41,7 +41,7 @@ struct AbstractDmxModule : rack::engine::Module {
 
         // DMX address & channels
         bool useOwnDmxAddress = false;
-        unsigned int dmxAddress = 1;
+        unsigned int dmxOwnAddress = 1;
         unsigned int dmxChannel = 1;
         std::vector<std::pair<unsigned int, uint8_t>> channelsValues;
         uint8_t nbDmxInputs;
@@ -80,8 +80,8 @@ struct AbstractDmxModule : rack::engine::Module {
         void configDmxInputs();
 
         int getModuleChainSize();
-        unsigned int getDmxAddress();
-        void setDmxAddress(int address);
+        unsigned int getDmxOwnAddress();
+        void setDmxOwnAddress(int address);
         unsigned int getDmxChannel();
         void setDmxChannel(unsigned int channel);
         bool getUseOwnDmxAddress();

@@ -30,7 +30,7 @@ private:
     void initOla();
 
 public:
-    bool debug = true;
+    bool debug = false;
 
     bool keepSendingWhenNotConnected = true;
 
