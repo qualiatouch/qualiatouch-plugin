@@ -15,6 +15,10 @@ void DmxUniverseField::onSelectKey(const event::SelectKey& event) {
             event.consume(this);
             return;
         }
+        if (dmxUniverse < 0 || dmxUniverse > 524287) {
+            event.consume(this);
+            return;
+        }
         if (module) {
             module->setDmxUniverse(dmxUniverse);
         }

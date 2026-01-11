@@ -2,12 +2,12 @@
 
 DmxAddressField::DmxAddressField(AbstractDmxModule* moduleParam) {
     module = moduleParam;
-    box.size.x = 100;
-    placeholder = "0";
+    box.size.x = 40;
+    placeholder = "1";
 }
 
 void DmxAddressField::onSelectKey(const event::SelectKey& event) {
-    if (event.action == GLFW_PRESS && event.key == GLFW_KEY_ENTER) {
+    if (event.action == GLFW_PRESS && (event.key == GLFW_KEY_ENTER || event.key == GLFW_KEY_KP_ENTER)) {
         int dmxOwnAddress;
         try {
             dmxOwnAddress = std::stoi(text);
@@ -15,10 +15,13 @@ void DmxAddressField::onSelectKey(const event::SelectKey& event) {
             event.consume(this);
             return;
         }
+        if (dmxOwnAddress < 1 || dmxOwnAddress > 512) {
+            event.consume(this);
+            return;
+        }
         if (module) {
             module->setDmxOwnAddress(dmxOwnAddress);
             module->setDmxChannel(dmxOwnAddress);
-            module->setRecalculateChain(true);
         }
         ui::MenuOverlay* overlay = getAncestorOfType<ui::MenuOverlay>();
         if (overlay) {
@@ -33,7 +36,7 @@ void DmxAddressField::onSelectKey(const event::SelectKey& event) {
 
 DmxAddressMenuItem::DmxAddressMenuItem(AbstractDmxModule* moduleParam) {
     module = moduleParam;
-    text = "DMX Address";
+    text = "DMX Address (1-512)";
     rightText = std::to_string(module->getDmxOwnAddress()) + " " + RIGHT_ARROW;
 }
 

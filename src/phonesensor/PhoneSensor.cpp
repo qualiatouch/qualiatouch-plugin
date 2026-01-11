@@ -263,7 +263,7 @@ std::string PhoneSensor::getQueryParams(Sensor sensor) {
     }
 }
 
-static std::string getType(const PhoneSensor::Sensor sensor, PhoneSensor::Coord coord) {
+static std::string getBufferKey(const PhoneSensor::Sensor sensor, PhoneSensor::Coord coord) {
     std::string type = "";
     std::string arg = "";
     switch (sensor)
@@ -320,12 +320,12 @@ static float getBufferValue(const json j, const PhoneSensor::Sensor sensor, Phon
         return 0.f;
     }
 
-    std::string p = getType(sensor, coord);
-    if (false == j["buffer"].contains(p)) {
+    std::string key = getBufferKey(sensor, coord);
+    if (false == j["buffer"].contains(key)) {
         return 0.f;
     }
 
-    return j["buffer"][p]["buffer"][0];
+    return j["buffer"][key]["buffer"][0];
 }
 
 static bool getMeasuringValue(const json j) {
@@ -451,7 +451,6 @@ void PhoneSensor::fetchHttpAsync(int requestId) {
         cout << "querying " << url << endl;
     }
 
-    // curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.1.25:8080/get?magX&magY&magZ");
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, CurlWriteCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);

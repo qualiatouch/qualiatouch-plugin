@@ -26,6 +26,12 @@ If you know about the DMX512 protocol, then you've already understood what these
 
 Contributions are much welcome! Especially from C++ experienced people, who'll know how to optimize the execution, clean the code, make it portable and most importantly, prevent memory leaks. Also from svg-friendly people, to improve the module widgets.
 
+## License
+
+As recommended by VCV, QualiaTouch is released under the GNU General Public License v3.0 (or later).
+
+This repository also contains the JSON for Modern C++ library by Niels Lohmann, licensed under the MIT License.
+
 ## Thanks
 
 The peole who coded the drivers, the libraries, and the Phyphox app, deserve praise for facilitating the work of many people.

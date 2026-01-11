@@ -55,6 +55,8 @@ struct AbstractDmxModule : rack::engine::Module {
 
         static const std::set<std::string> DMX_SLUGS;
 
+        static const unsigned int MAX_CHAIN_LENGTH = 512;
+
     protected:
         AbstractDmxModule(int nbInputs);
 
@@ -86,7 +88,6 @@ struct AbstractDmxModule : rack::engine::Module {
         void setDmxChannel(unsigned int channel);
         bool getUseOwnDmxAddress();
         void assignDmxChannels(unsigned int baseChannel);
-        void setRecalculateChain(bool recalculate);
         vector<pair<unsigned int, uint8_t>> getChannelsValues();
 
         void process(const ProcessArgs& args) override;

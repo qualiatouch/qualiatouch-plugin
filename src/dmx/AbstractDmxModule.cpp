@@ -72,7 +72,6 @@ void AbstractDmxModule::refreshModuleChain() {
             cout << "module " << getId() << " is first of chain" << endl;
         }
     } else {
-        // not master
         moduleChain.push_back(this);
         moduleChainSize = moduleChain.size();
         if (debugChain) {
@@ -103,7 +102,7 @@ void AbstractDmxModule::refreshModuleChain() {
     int relativeCounter = 0;
 
     // remplissage de la chaîne
-    while (m && i < 20) { // todo const limit
+    while (m && i < MAX_CHAIN_LENGTH) {
         m->moduleIndex = i;
         uint8_t nbDmxInputs = m->nbDmxInputs;
         if (debugChain) {
@@ -308,17 +307,10 @@ void AbstractDmxModule::process(const ProcessArgs& args) {
     }
 
     for (int i = 0; i < nbDmxInputs; i++) {
-        if (debug) {
-            cout << "244 module " << getId() << " input " << i;
-        }
         if (inputs[i].isConnected()) {
             float voltage = inputs[i].getVoltage();
             float clamped = clamp(voltage, 0.f, 10.f);
             uint8_t dmxValue = static_cast<uint8_t>(clamped * 255.f / 10.f);
-            if (debug) {
-                cout << " : " << i + 1 << " -> " << (int) dmxValue << endl;
-            }
-
             channelsValues[i].second = dmxValue;
         } else if (!DmxRegistry::instance().keepSendingWhenNotConnected) {
             if (debug) {
@@ -335,7 +327,6 @@ void AbstractDmxModule::process(const ProcessArgs& args) {
     timeSinceLastLoop = 0.0f;
     loop++;
 }
-
 
 int AbstractDmxModule::getModuleChainSize() {
     return moduleChainSize;
@@ -355,14 +346,11 @@ unsigned int AbstractDmxModule::getDmxChannel() {
 
 void AbstractDmxModule::setDmxChannel(unsigned int channel) {
     dmxChannel = channel;
+    recalculateChain = true;
 }
 
 bool AbstractDmxModule::getUseOwnDmxAddress() {
     return useOwnDmxAddress;
-}
-
-void AbstractDmxModule::setRecalculateChain(bool recalculate) {
-    recalculateChain = recalculate;
 }
 
 vector<pair<unsigned int, uint8_t>> AbstractDmxModule::getChannelsValues() {
