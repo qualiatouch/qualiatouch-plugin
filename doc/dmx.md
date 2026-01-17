@@ -9,8 +9,8 @@ The DMX modules allow you to send DMX data to lighting fixtures in real life, fr
 - An USB -> DMX OUT adapter.
   - I'm using the ENTTEC Open DMX USB adapter. I'm saying that only as an example of what works, I'm not affiliated with ENTTEC in any way.
 - Any DMX fixture, connected to the adapter by DMX cables. I mean, that's the purpose of the module, so if you're reading this you probably have at least one lighting fixture laying around somewhere in your field of view right now, and which you want to be controlled.
-- You'll need to install and configure the proper drivers and framework which are supposed to work with your adapter on your operating system.
-  - I'm using [OLA](https://www.openlighting.org/ola/) (Open Lighting Architecture) on Linux. More details [here](dmx-configure.md) for configuring it.
+- You'll need to install and configure the proper drivers and framework which are supposed to work with your adapter on your operating system. Currently, the modules are only supporting the [OLA framework](https://www.openlighting.org/ola/) (Open Lighting Architecture)
+  - Follow the instructions [here](dmx-configure.md) for installing and configuring OLA on your computer.
 - Some hope that your computer will allow you to make it all work.
 
 ## Starting
@@ -43,7 +43,7 @@ The module displays its DMX channel under the value input.
 
 ## Chaining modules
 
-One handy thing with the DMX protocol is that lighting fixtures often use several consecutive channels, starting at their assigned DMX address, to control separate parameters of the same fixture. The DMX modules are conceived for that use and allows you to send values to consecutive DMX channels, by chaining several modules together:
+One handy thing with the DMX protocol is that lighting fixtures often use several consecutive channels, starting at their assigned DMX address, to control separate parameters of the same fixture. The DMX modules are conceived for that use and allow you to send values to consecutive DMX channels, by chaining several modules together:
 
 ![](dmx-chain.png "Chained")
 

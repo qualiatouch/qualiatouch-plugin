@@ -32,7 +32,7 @@ The module has 4 outputs.
 
   - The first two (X and Y) output a 0-10V CV signal corresponding to the X and Y position of the closest object (usually, you'll use one hand in front of you).
   - The third output is the depth of the closest object.
-  - The fourth outputs either 10V or 0V, depending on wether depth of the closest object is closer or further than a defined threshold.
+  - The fourth one is a gate that outputs either 10V or 0V, depending on wether the depth of the closest object is closer or further than a defined threshold.
 
 ## Threshold parameter
 

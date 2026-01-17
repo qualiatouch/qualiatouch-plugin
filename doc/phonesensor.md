@@ -45,10 +45,24 @@ A LED indicates the status of the module :
 - orange : we're connected to the PhyPhox app, but the app is not measuring
 - green : we're connected to the PhyPhox app and receiving data measured by the sensor
 
+## Sensor values to output mapping
+
+The CV signals coming out of the three outputs X, Y and Z will correspond to different sensor dimensions, depending on the selected sensor:
+
+| Sensor type (unit)  | X output | Y output | Z output |
+|---------------------|----------|----------|----------|
+| Magnetic (µT)       | X axis   | Y axis   | Z axis   |
+| Acceleration (m/s²) | X axis   | Y axis   | Z axis   |
+| Light (lx)          | intensity| nothing  | nothing  |
+| Tilt (°)            | up-down  |left-right| nothing  |
+| Sound intensity (dB)| X axis   | nothing  | nothing  |
+| Color (0-255)       | Red      | Green    | Blue     |
+| Gyroscope (rad/s)   | X axis   | Y axis   | Z axis   |
+
 ## Good to know
 
 The module parameters are saved in the patch file, so they'll be the same when you close and open it again.
 
 Switching sensor type might not work immediately. You might need to save the patch, close and re-open vcv rack, so that the newly selected sensor is taken into account.
 
-The PhyPhox app doesn't allow to use more than one sensor at the same time. Howerver, if you have several devices with the app installed, you can place several PhoneSensor modules on the same rack, each one connected to a different device.
+The PhyPhox app doesn't allow to use more than one sensor at the same time. However, if you have several devices with the app installed, you can place several PhoneSensor modules on the same rack, each one connected to a different device.

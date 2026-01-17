@@ -2,6 +2,8 @@
 
 Depending on your OS and the DMX adapter you have, the configuration can differ. I'm showing what i've done on my computer to give you an idea of what should be done. If you have a different system and made it work, i can include your instructions here.
 
+You can start by checking [this page](https://www.openlighting.org/ola/getting-started/device-specific-configuration/) of the OLA docs to see what corresponds to your case.
+
 ## Ubuntu (or derivative) with OLA + ENTTEC Open DMX USB adapter
 
 Linux should already have the drivers for the adapter itself. What you'll need is the [OLA framework](https://www.openlighting.org/ola/) to make VCV send data to the adapter, for a given DMX universe.
@@ -178,10 +180,9 @@ Things you could try:
 - some LLM might spit out words that can somehow lead you to the start of a resemblance of a solution
 - compile OLA from source instead of using the apt package
 - use another OLA plugin that could be more appropriate  (`ola_plugin_info` and `ola_plugin_state`), and beware of plugin conflicts and states ; each plugin has a description to help you understand what it's for
-- use another framework than OLA ?
 
 You can also contact me at qualiatouch@proton.me, two brains might be of more help than one.
 
 ### If it works
 
-Then you're about to expand your world and unite the infinite possibilites of a modular synth, to the physical possibility of the DMX universe!
+Then you're about to expand your world and unite the infinite possibilites of a modular synth, to the physical possibilities of the DMX universe!
